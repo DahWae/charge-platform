@@ -54,4 +54,3 @@ if __name__ == '__main__':
                 arm.postState(client=c, state=2)
             case 2:  # idle mode
                 arm.postState(client=c, state=0)
-                
