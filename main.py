@@ -1,7 +1,6 @@
 # system package
 import time
 import multiprocessing
-from turtle import st
 import cv2
 import sys
 
@@ -36,22 +35,22 @@ if __name__ == '__main__':
 
     # cnt = multiprocessing.Value('i', 0)   # child test
     # multiprocessing.Process(target=subPTest, args=(cnt,)).start()
-    
+
     multiprocessing.Process(target=subP, args=(coords, inView)).start()
     c = arm.openClient(host='192.168.0.29', port=502)
 
     while True:
 
         print(arm.getReturn(client=c))
-        
+
         match arm.getReturn(client=c):
-            case 0: # active mode
-                if inView.value == 1:   # marker found
-                    arm.postCoord(
-                        client=c, x=coords[0], y=coords[1], z=coords[2], rx=coords[3], ry=coords[4], rz=coords[5])
-                    arm.postState(client=c, state=1)    # start after the coordinate is given
+            case 0:  # active mode
+                if inView.value:   # marker found
+                    arm.postCoord(client=c, coords=coords)
+                    # start after the coordinate is given
+                    arm.postState(client=c, state=1)
                     print('posted')
-            case 1: # hold mode
+            case 1:  # hold mode
                 arm.postState(client=c, state=2)
-            case 2: # idle mode
+            case 2:  # idle mode
                 arm.postState(client=c, state=0)
