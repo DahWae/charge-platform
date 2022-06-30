@@ -4,11 +4,22 @@ import multiprocessing
 import cv2
 import sys
 from fastapi import FastAPI
+from pydantic import BaseModel
+import datetime
+
+import uvicorn
 
 # self package
 import camera
 import amr
 import arm
+
+
+class target(BaseModel):
+    space: int
+    leaveTime: datetime.datetime = None
+    tStamp: int
+    power: int
 
 
 def subPTest(cnt):
@@ -30,6 +41,30 @@ def subP(coords, inView):
             inView.value = 0
 
 
+def goCharge(target):
+    allPoint = amr.currentAllGoalPoint()
+    # match target.space and GoalPoint coordination
+    amr.moveToGoal(matchedPoint)
+    while(amr.currentStatus()):
+        None
+    amr.startMagneticFind()
+    amr.startMagneticGoal()
+    while(amr.magneticState()):
+        None
+    arm.postCoord(client=c, coords=coords)
+    arm.postState(client=c, state=1)
+    while(~arm.getReturn(client=c)):
+        None
+    arm.postState(client=c, state=2)
+
+
+app = FastAPI()
+
+
+@app.post('/charge/')
+async def chargeTarget(target):
+    goCharge(target)
+
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
@@ -38,7 +73,8 @@ if __name__ == '__main__':
     # multiprocessing.Process(target=subPTest, args=(cnt,)).start()
 
     multiprocessing.Process(target=subP, args=(coords, inView)).start()
-    c = arm.openClient(host='192.168.0.29', port=502)
+    c = arm.openClient()
+    uvicorn.run(app, host='0.0.0.0', port=8000)
 
     while True:
 
