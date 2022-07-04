@@ -15,11 +15,11 @@ import amr
 import arm
 
 
-class target(BaseModel):
-    space: int
+class Target(BaseModel):
+    space: str
     leaveTime: datetime.datetime = None
-    tStamp: int
-    power: int
+    tStamp: int = None
+    power: int = None
 
 
 def subPTest(cnt):
@@ -44,6 +44,7 @@ def subP(coords, inView):
 def goCharge(target):
     allPoint = amr.currentAllGoalPoint()
     # match target.space and GoalPoint coordination
+    matchedPoint = contains(allPoint, lambda x: x['id'] == target.space)
     amr.moveToGoal(matchedPoint)
     while(amr.currentStatus()):
         None
@@ -51,20 +52,42 @@ def goCharge(target):
     amr.startMagneticGoal()
     while(amr.magneticState()):
         None
-    arm.postCoord(client=c, coords=coords)
-    arm.postState(client=c, state=1)
-    while(~arm.getReturn(client=c)):
-        None
-    arm.postState(client=c, state=2)
+    # arm.postCoord(client=c, coords=coords)
+    # arm.postState(client=c, state=1)
+    # while(~arm.getReturn(client=c)):
+    #     None
+    # arm.postState(client=c, state=2)
+
+
+def contains(list, filter):
+    for x in list:
+        if filter(x):
+            return x
+    return False
 
 
 app = FastAPI()
 
 
-@app.post('/charge/')
-async def chargeTarget(target):
+@app.post('/action/charge')
+async def chargeTarget(target: Target):
     goCharge(target)
+    return True
 
+@app.post('/test')
+async def testResponse(test: str):
+    print(test)
+    return 'Response'
+
+@app.post('/action/return')
+async def returnToBase():
+    moveToBase()
+    return True
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+    
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
@@ -72,22 +95,22 @@ if __name__ == '__main__':
     # cnt = multiprocessing.Value('i', 0)   # child test
     # multiprocessing.Process(target=subPTest, args=(cnt,)).start()
 
-    multiprocessing.Process(target=subP, args=(coords, inView)).start()
+    # multiprocessing.Process(target=subP, args=(coords, inView)).start()
     c = arm.openClient()
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host='127.0.0.1', port=8000)
 
-    while True:
+    # while True:
 
-        print(arm.getReturn(client=c))
+    #     print(arm.getReturn(client=c))
 
-        match arm.getReturn(client=c):
-            case 0:  # active mode
-                if inView.value:   # marker found
-                    arm.postCoord(client=c, coords=coords)
-                    # start after the coordinate is given
-                    arm.postState(client=c, state=1)
-                    print('posted')
-            case 1:  # hold mode
-                arm.postState(client=c, state=2)
-            case 2:  # idle mode
-                arm.postState(client=c, state=0)
+    #     match arm.getReturn(client=c):
+    #         case 0:  # active mode
+    #             if inView.value:   # marker found
+    #                 arm.postCoord(client=c, coords=coords)
+    #                 # start after the coordinate is given
+    #                 arm.postState(client=c, state=1)
+    #                 print('posted')
+    #         case 1:  # hold mode
+    #             arm.postState(client=c, state=2)
+    #         case 2:  # idle mode
+    #             arm.postState(client=c, state=0)

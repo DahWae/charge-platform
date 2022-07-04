@@ -1,0 +1,7 @@
+fastapi==0.78.0
+numpy==1.22.3
+opencv_contrib_python==4.5.5.64
+pydantic==1.9.1
+pyModbusTCP==0.2.0
+requests==2.27.1
+uvicorn==0.18.2

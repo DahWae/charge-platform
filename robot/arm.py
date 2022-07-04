@@ -2,7 +2,7 @@ from numpy import empty
 from pyModbusTCP.client import ModbusClient
 
 
-def openClient(host, port):
+def openClient():
     c = ModbusClient(host='192.168.0.29', port=502,unit_id=1,auto_open=True)    #192.168.1.116為UR的IP位置
     return c
 

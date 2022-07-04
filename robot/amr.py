@@ -1,10 +1,9 @@
 # This program is the controller of AMR
 # using HTTP request
 
-from asyncio.windows_events import NULL
 import requests
 
-url = '192.168.1.1'  # TODO: change the url
+url = 'http://10.42.0.1'  # TODO: change the url
 
 
 def mapMode(mode):
@@ -79,7 +78,7 @@ def updateGoalPoint(mapName, pointName, newPointName):
 def currentAllGoalPoint():
     path = url + ':6010/navigation/currentAllGoalPoint'
     r = requests.get(url=path)
-    return r
+    return r.json()
 
 
 def allGoalPoint(name):
