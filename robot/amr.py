@@ -8,71 +8,71 @@ url = 'http://10.42.0.1'  # TODO: change the url
 
 def mapMode(mode):
     path = url + ':6010/map/mapMode'
-    data = {'MODE': mode}
-    r = requests.post(url=path, data=data)
+    params = {'MODE': mode}
+    r = requests.post(url=path, params=params)
     return r
 
 
 def saveMap(name):
     path = url + ':6010/map/saveMap'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
+    params = {'name': name}
+    r = requests.post(url=path, params=params)
     return r
 
 
 def deleteMap(name):
     path = url + ':6010/map/deleteMap'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
+    json = {'name': name}
+    r = requests.post(url=path, json=json)
     return r
 
 
 def switchMap(name):
     path = url + ':6010/map/switchMap'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
-    return r
+    json = {'name': name}
+    r = requests.post(url=path, json=params)
+    return r.json()
 
 
 def currentMap():
     path = url + ':6010/map/currentMap'
     r = requests.get(url=path)
-    return r
+    return r.text
 
 
 def renameMap(name, newName):
     path = url + ':6010/map/renameMap'
-    data = {'name': name, 'newName': newName}
-    r = requests.post(url=path, data=data)
+    params = {'name': name, 'newName': newName}
+    r = requests.post(url=path, params=params)
     return r
 
 
 def getAllMap():
     path = url + ':6010/map/getAllMap'
     r = requests.get(url=path)
-    return r
+    return r.json()
 
 
 def newGoalPoint(name):
     path = url + ':6010/navigation/newGoalPoint'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
+    params = {'name': name}
+    r = requests.post(url=path, params=params)
     return r
 
 
 def deleteGoalPoint(mapName, pointName):
     path = url + ':6010/navigation/deleteGoalPoint'
-    data = {'mapName': mapName, 'pointName': pointName}
-    r = requests.post(url=path, data=data)
+    params = {'mapName': mapName, 'pointName': pointName}
+    r = requests.post(url=path, params=params)
     return r
 
 
 def updateGoalPoint(mapName, pointName, newPointName):
     path = url + ':6010/navigation/updateGoalPoint'
-    data = {'mapName': mapName, 'pointName': pointName,
+    params = {'mapName': mapName, 'pointName': pointName,
             'newPointName': newPointName}
-    r = requests.post(url=path, data=data)
-    return r
+    r = requests.post(url=path, params=params)
+    return r.text
 
 
 def currentAllGoalPoint():
@@ -83,22 +83,22 @@ def currentAllGoalPoint():
 
 def allGoalPoint(name):
     path = url + ':6010/navigation/allGoalPoint'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
-    return r
+    json = {'name': name}
+    r = requests.post(url=path, json=json)
+    return r.json()
 
 
 def currentXY():
     path = url + ':6010/navigation/currentXY'
-    r = requests.post(url=path)
-    return r
+    r = requests.get(url=path)
+    return r.json()
 
 
-def moveToGoal(x, y, qz, qw):
-    path = url + ':6010/amrCommand/moveToGoal'
-    data = {'x': x, 'y': y, 'qz': qz, 'qw': qw}
-    r = requests.post(url=path, data=data)
-    return r
+def moveToGoal(point):
+    path = url + ':6010/amrCommand/moveToGaol' # typo
+    json = {'x': point['x'], 'y': point['y'], 'qz': point['qz'], 'qw': point['qw']}
+    r = requests.post(url=path, json=json)
+    return r.text
 
 
 def annulment():
@@ -110,7 +110,8 @@ def annulment():
 def currentStatus():
     path = url + ':6010/amrCommand/currentStatus'
     r = requests.get(url=path)
-    return r
+    ret = r.json()
+    return ret['taskState']
 
 
 def battery():
@@ -121,8 +122,8 @@ def battery():
 
 def velocity(name):
     path = url + ':6010/amrHardware/velocity'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
+    params = {'name': name}
+    r = requests.post(url=path, params=params)
     return r
 
 
@@ -134,22 +135,22 @@ def sensor():
 
 def light(name, flag):
     path = url + ':6010/amrHardware/velocity'
-    data = {'name': name, 'flag': flag}
-    r = requests.post(url=path, data=data)
+    params = {'name': name, 'flag': flag}
+    r = requests.post(url=path, params=params)
     return r
 
 
-def startMagneticFind(name):
+def startMagneticFind():
     path = url + ':6010/amrHardware/startMagneticFind'
-    data = {'name': name}
-    r = requests.post(url=path, data=data)
-    return r
-
-
-def startMagneticGoal():
-    path = url + ':6010/amrHardware/startMagneticGoal'
     r = requests.get(url=path)
-    return r
+    return r.text
+
+
+def startMagneticGoal(name):
+    path = url + ':6010/amrHardware/startMagneticGoal'
+    json = {'name': name}
+    r = requests.post(url=path, json=json)
+    return r.text
 
 
 def stopMagnetic():
@@ -161,4 +162,4 @@ def stopMagnetic():
 def magneticState():
     path = url + ':6010/amrHardware/magneticState'
     r = requests.get(url=path)
-    return r
+    return r.json()

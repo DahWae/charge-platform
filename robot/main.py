@@ -1,4 +1,5 @@
 # system package
+from glob import glob
 import time
 import multiprocessing
 import cv2
@@ -22,6 +23,15 @@ class Target(BaseModel):
     power: int = None
 
 
+class RobotStatus:
+    target: Target = None
+    status: str = 'idle'
+    startFlag: bool = False
+
+
+robot = RobotStatus()
+
+
 def subPTest(cnt):
     while True:
         cnt.value = cnt.value+1
@@ -41,22 +51,74 @@ def subP(coords, inView):
             inView.value = 0
 
 
+def printPosition():
+    print(amr.currentXY())
+    return
+
+
 def goCharge(target):
+    # AMR
+    printPosition()
     allPoint = amr.currentAllGoalPoint()
+    print('all point loaded')
     # match target.space and GoalPoint coordination
-    matchedPoint = contains(allPoint, lambda x: x['id'] == target.space)
-    amr.moveToGoal(matchedPoint)
-    while(amr.currentStatus()):
-        None
-    amr.startMagneticFind()
-    amr.startMagneticGoal()
-    while(amr.magneticState()):
-        None
+    matchedPoint = contains(allPoint, lambda x: x['name'] == target.space)
+    if matchedPoint is None:
+        print('ERR, Point not found')
+        return
+    print('point found, moving')
+    print(matchedPoint)
+    print(amr.moveToGoal(matchedPoint))
+    time.sleep(1)
+    while(amr.currentStatus() == 'running'):
+        print('still moving')
+        time.sleep(2)
+    print('start magnetic find')
+    print(amr.startMagneticFind())
+    time.sleep(1)
+    while(amr.magneticState() == 1):
+        print('still finding')
+        time.sleep(2)
+    print('start magnetic goal')
+    print(amr.startMagneticGoal(name='P2'))
+    time.sleep(1)
+    while(amr.magneticState() == 1):
+        print('still tracing')
+        time.sleep(2)
+    print('end of charge')
+
+    # ARM
     # arm.postCoord(client=c, coords=coords)
     # arm.postState(client=c, state=1)
     # while(~arm.getReturn(client=c)):
     #     None
     # arm.postState(client=c, state=2)
+    return
+
+
+def goReturn():
+    # ARM
+
+    # AMR
+    allPoint = amr.currentAllGoalPoint()
+    # match target to Base
+    matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
+    amr.moveToGoal(matchedPoint)
+    while(amr.currentStatus()):
+        time.sleep(2)
+    amr.startMagneticFind()
+    while(amr.magneticState()):
+        time.sleep(2)
+    amr.startMagneticGoal()
+    while(amr.magneticState()):
+        time.sleep(2)
+    return
+
+
+def getRobotStatus():
+    amrStatus = amr.currentStatus()
+
+    return amrStatus
 
 
 def contains(list, filter):
@@ -71,35 +133,72 @@ app = FastAPI()
 
 @app.post('/action/charge')
 async def chargeTarget(target: Target):
-    goCharge(target)
-    return True
+    if robot.status == 'idle':
+        robot.status = 'charge'
+        robot.target = target
+        robot.startFlag = True
+        print('start of charge')
+        goCharge(robot.target)
+        robot.startFlag = False
+        return True
+    else:
+        return False
+
+
+@app.post('/action/return')
+async def returnToBase():
+    if robot.status == 'charge':
+        robot.status = 'return'
+        robot.target = None
+        robot.startFlag = True
+    else:
+        return False
+
+
+@app.get('/action/status')
+async def returnStatus():
+    return {'msg': robot.status}
+
 
 @app.post('/test')
 async def testResponse(test: str):
     print(test)
     return 'Response'
 
-@app.post('/action/return')
-async def returnToBase():
-    moveToBase()
-    return True
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-    
+
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
+    # multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
     # cnt = multiprocessing.Value('i', 0)   # child test
     # multiprocessing.Process(target=subPTest, args=(cnt,)).start()
 
-    # multiprocessing.Process(target=subP, args=(coords, inView)).start()
+    print(amr.annulment())
+    print(amr.stopMagnetic())
+
     c = arm.openClient()
     uvicorn.run(app, host='127.0.0.1', port=8000)
 
-    # while True:
+    print('Service on')
+
+    while True:
+
+        if robot.startFlag:
+            match robot.status:
+                case 'charge':
+                    print('start of charge')
+                    goCharge(robot.target)
+                    robot.startFlag = False
+                case 'return':
+                    print('start of return')
+                    goReturn()
+                    robot.status = 'idle'
+                    robot.startFlag = False
 
     #     print(arm.getReturn(client=c))
 
