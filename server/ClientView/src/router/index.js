@@ -10,7 +10,7 @@ import Manager from '@/views/Manager.vue'
 const routes = [
     { path: '/', name: 'Home', component: Home },
     { path: '/about', name: 'About', component: About },
-    { path: '/Manager', name: 'Manager', component: Manager },
+    { path: '/manager', name: 'Manager', component: Manager },
     { path: '/register', name: 'Register', component: Register },
     { path: '/search', name: 'Search', component: Search },
     {

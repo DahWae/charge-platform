@@ -35,28 +35,34 @@ def chargeTest():
 
 def returnTest():
     path = robotUrl + ':8000/action/return'
-    params = None
-    r = requests.post(url=path, params=params)
+    r = requests.post(url=path)
     print(r.text)
     return
 
 
+def apiTest():
+    path = robotUrl + ':8000/test'
+    params = {'test': '123'}
+    r = requests.post(url=path, params=params)
+    print(r.text)
+    return
+
 def amrTest():
-    allPoint = amr.currentAllGoalPoint()
-    print('all point loaded')
-    # match target.space and GoalPoint coordination
-    matchedPoint = contains(allPoint, lambda x: x['name'] == 'P1')
-    if matchedPoint is None:
-        print('ERR, Point not found')
-        return
-    print('point found, moving')
-    print(matchedPoint)
-    print(amr.moveToGoal(matchedPoint))
-    print('end of moving')
-    print(amr.currentXY())
-    while True:
-        print(amr.currentStatus())
-        time.sleep(2)
+    # allPoint = amr.currentAllGoalPoint()
+    # print('all point loaded')
+    # # match target.space and GoalPoint coordination
+    # matchedPoint = contains(allPoint, lambda x: x['name'] == 'P1')
+    # if matchedPoint is None:
+    #     print('ERR, Point not found')
+    #     return
+    # print('point found, moving')
+    # print(matchedPoint)
+    # print(amr.moveToGoal(matchedPoint))
+    # print('end of moving')
+    # print(amr.currentXY())
+    # while True:
+    #     print(amr.currentStatus())
+    #     time.sleep(2)
 
     # print(amr.getAllMap())
     # mapName = amr.currentMap()
@@ -65,12 +71,13 @@ def amrTest():
     # print(amr.currentAllGoalPoint())
 
 
-    # print(amr.startMagneticGoal(name='P2'))
+    print(amr.startMagneticGoal(name=0))
 
+    # print(amr.allGoalPoint(name='Uni'))
     # mapName = amr.currentMap()
     # print(mapName)
     # print(amr.currentAllGoalPoint())
-    # temp = amr.allGoalPoint(name='abc')
+    # temp = amr.allGoalPoint(name='map')
     # temp = amr.updateGoalPoint(mapName=mapName, pointName='P0', newPointName='Base')
     # temp = amr.moveToGoal()
     # print(temp)
@@ -79,6 +86,8 @@ def amrTest():
 
 if __name__ == '__main__':
     chargeTest()
+    # returnTest()
+    # apiTest()
     # amrTest()
     # amr.annulment()
     # amr.stopMagnetic()

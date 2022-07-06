@@ -1,9 +1,7 @@
 # system package
-from glob import glob
-import time
 import multiprocessing
+import asyncio
 import cv2
-import sys
 from fastapi import FastAPI
 from pydantic import BaseModel
 import datetime
@@ -32,12 +30,6 @@ class RobotStatus:
 robot = RobotStatus()
 
 
-def subPTest(cnt):
-    while True:
-        cnt.value = cnt.value+1
-        time.sleep(2)
-
-
 def subP(coords, inView):
     cam = cv2.VideoCapture(0)
     while True:
@@ -56,7 +48,7 @@ def printPosition():
     return
 
 
-def goCharge(target):
+async def goCharge(target):
     # AMR
     printPosition()
     allPoint = amr.currentAllGoalPoint()
@@ -69,22 +61,22 @@ def goCharge(target):
     print('point found, moving')
     print(matchedPoint)
     print(amr.moveToGoal(matchedPoint))
-    time.sleep(1)
+    await asyncio.sleep(1)
     while(amr.currentStatus() == 'running'):
         print('still moving')
-        time.sleep(2)
+        await asyncio.sleep(2)
     print('start magnetic find')
     print(amr.startMagneticFind())
-    time.sleep(1)
+    await asyncio.sleep(1)
     while(amr.magneticState() == 1):
         print('still finding')
-        time.sleep(2)
+        await asyncio.sleep(2)
     print('start magnetic goal')
-    print(amr.startMagneticGoal(name='P2'))
-    time.sleep(1)
+    print(amr.startMagneticGoal())
+    await asyncio.sleep(1)
     while(amr.magneticState() == 1):
         print('still tracing')
-        time.sleep(2)
+        await asyncio.sleep(2)
     print('end of charge')
 
     # ARM
@@ -96,22 +88,22 @@ def goCharge(target):
     return
 
 
-def goReturn():
+async def goReturn():
     # ARM
 
     # AMR
     allPoint = amr.currentAllGoalPoint()
     # match target to Base
-    matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
+    matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
     amr.moveToGoal(matchedPoint)
-    while(amr.currentStatus()):
-        time.sleep(2)
-    amr.startMagneticFind()
-    while(amr.magneticState()):
-        time.sleep(2)
-    amr.startMagneticGoal()
-    while(amr.magneticState()):
-        time.sleep(2)
+    # while(amr.currentStatus()):
+    #     await asyncio.sleep(2)
+    # amr.startMagneticFind()
+    # while(amr.magneticState()):
+    #     await asyncio.sleep(2)
+    # amr.startMagneticGoal()
+    # while(amr.magneticState()):
+    #     await asyncio.sleep(2)
     return
 
 
@@ -134,35 +126,47 @@ app = FastAPI()
 @app.post('/action/charge')
 async def chargeTarget(target: Target):
     if robot.status == 'idle':
-        robot.status = 'charge'
-        robot.target = target
-        robot.startFlag = True
-        print('start of charge')
-        goCharge(robot.target)
-        robot.startFlag = False
-        return True
-    else:
-        return False
+        if robot.startFlag == False:
+            robot.status = 'charge'
+            robot.target = target
+            robot.startFlag = True
+            print('start of charge')
+            await goCharge(robot.target)
+            robot.startFlag = False
+            return True
+    return False
 
 
 @app.post('/action/return')
 async def returnToBase():
     if robot.status == 'charge':
-        robot.status = 'return'
-        robot.target = None
-        robot.startFlag = True
-    else:
-        return False
+        if robot.startFlag == False:
+            robot.status = 'return'
+            robot.target = None
+            robot.startFlag = True
+            print('start of return')
+            await goReturn()
+            robot.status = 'idle'
+            robot.startFlag = False
+            return True
+    return False
 
 
 @app.get('/action/status')
 async def returnStatus():
-    return {'msg': robot.status}
+    return {'status': robot.status, 'startFlag': robot.startFlag}
 
 
 @app.post('/test')
 async def testResponse(test: str):
     print(test)
+    cnt = 0
+    while True:
+        print(cnt)
+        cnt += 1
+        await asyncio.sleep(1)
+        if cnt > 30:
+            break
     return 'Response'
 
 
@@ -175,9 +179,6 @@ if __name__ == '__main__':
     inView = multiprocessing.Value('i', 0)
     # multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    # cnt = multiprocessing.Value('i', 0)   # child test
-    # multiprocessing.Process(target=subPTest, args=(cnt,)).start()
-
     print(amr.annulment())
     print(amr.stopMagnetic())
 
@@ -186,19 +187,19 @@ if __name__ == '__main__':
 
     print('Service on')
 
-    while True:
+    # while True:
 
-        if robot.startFlag:
-            match robot.status:
-                case 'charge':
-                    print('start of charge')
-                    goCharge(robot.target)
-                    robot.startFlag = False
-                case 'return':
-                    print('start of return')
-                    goReturn()
-                    robot.status = 'idle'
-                    robot.startFlag = False
+    #     if robot.startFlag:
+    #         match robot.status:
+    #             case 'charge':
+    #                 print('start of charge')
+    #                 goCharge(robot.target)
+    #                 robot.startFlag = False
+    #             case 'return':
+    #                 print('start of return')
+    #                 goReturn()
+    #                 robot.status = 'idle'
+    #                 robot.startFlag = False
 
     #     print(arm.getReturn(client=c))
 

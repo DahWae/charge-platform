@@ -2,6 +2,7 @@
 # using HTTP request
 
 import requests
+from requests.exceptions import Timeout
 
 url = 'http://10.42.0.1'  # TODO: change the url
 
@@ -9,157 +10,229 @@ url = 'http://10.42.0.1'  # TODO: change the url
 def mapMode(mode):
     path = url + ':6010/map/mapMode'
     params = {'MODE': mode}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def saveMap(name):
     path = url + ':6010/map/saveMap'
     params = {'name': name}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def deleteMap(name):
     path = url + ':6010/map/deleteMap'
     json = {'name': name}
-    r = requests.post(url=path, json=json)
-    return r
+    try:
+        r = requests.post(url=path, json=json, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def switchMap(name):
     path = url + ':6010/map/switchMap'
     json = {'name': name}
-    r = requests.post(url=path, json=params)
-    return r.json()
+    try:
+        r = requests.post(url=path, json=json, timeout=10)
+        return r.json()
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def currentMap():
     path = url + ':6010/map/currentMap'
-    r = requests.get(url=path)
-    return r.text
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r.text
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def renameMap(name, newName):
     path = url + ':6010/map/renameMap'
     params = {'name': name, 'newName': newName}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def getAllMap():
     path = url + ':6010/map/getAllMap'
-    r = requests.get(url=path)
-    return r.json()
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r.json()
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def newGoalPoint(name):
     path = url + ':6010/navigation/newGoalPoint'
     params = {'name': name}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def deleteGoalPoint(mapName, pointName):
     path = url + ':6010/navigation/deleteGoalPoint'
     params = {'mapName': mapName, 'pointName': pointName}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def updateGoalPoint(mapName, pointName, newPointName):
     path = url + ':6010/navigation/updateGoalPoint'
     params = {'mapName': mapName, 'pointName': pointName,
             'newPointName': newPointName}
-    r = requests.post(url=path, params=params)
-    return r.text
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r.text
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def currentAllGoalPoint():
     path = url + ':6010/navigation/currentAllGoalPoint'
-    r = requests.get(url=path)
-    return r.json()
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r.json()
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def allGoalPoint(name):
     path = url + ':6010/navigation/allGoalPoint'
     json = {'name': name}
-    r = requests.post(url=path, json=json)
-    return r.json()
+    try:
+        r = requests.post(url=path, json=json, timeout=10)
+        return r.json()
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def currentXY():
     path = url + ':6010/navigation/currentXY'
-    r = requests.get(url=path)
-    return r.json()
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r.json()
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def moveToGoal(point):
     path = url + ':6010/amrCommand/moveToGaol' # typo
     json = {'x': point['x'], 'y': point['y'], 'qz': point['qz'], 'qw': point['qw']}
-    r = requests.post(url=path, json=json)
-    return r.text
+    try:
+        r = requests.post(url=path, json=json, timeout=10)
+        return r.text
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def annulment():
     path = url + ':6010/amrCommand/annulment'
-    r = requests.post(url=path)
-    return r
+    try:
+        r = requests.post(url=path, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def currentStatus():
     path = url + ':6010/amrCommand/currentStatus'
-    r = requests.get(url=path)
-    ret = r.json()
-    return ret['taskState']
+    try:
+        r = requests.get(url=path, timeout=10)
+        ret = r.json()
+        return ret['taskState']
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def battery():
     path = url + ':6010/amrHardware/batter'
-    r = requests.get(url=path)
-    return r
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def velocity(name):
     path = url + ':6010/amrHardware/velocity'
     params = {'name': name}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def sensor():
     path = url + ':6010/amrHardware/sensor'
-    r = requests.get(url=path)
-    return r
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def light(name, flag):
     path = url + ':6010/amrHardware/velocity'
     params = {'name': name, 'flag': flag}
-    r = requests.post(url=path, params=params)
-    return r
+    try:
+        r = requests.post(url=path, params=params, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def startMagneticFind():
     path = url + ':6010/amrHardware/startMagneticFind'
-    r = requests.get(url=path)
-    return r.text
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r.text
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
-def startMagneticGoal(name):
+def startMagneticGoal():
     path = url + ':6010/amrHardware/startMagneticGoal'
-    json = {'name': name}
-    r = requests.post(url=path, json=json)
-    return r.text
+    json = {'name': '0'}
+    try:
+        r = requests.post(url=path, json=json, timeout=10)
+        return r.text
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def stopMagnetic():
     path = url + ':6010/amrHardware/stopMagnetic'
-    r = requests.get(url=path)
-    return r
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r
+    except Timeout:
+        return 'ERROR: Timeout'
 
 
 def magneticState():
     path = url + ':6010/amrHardware/magneticState'
-    r = requests.get(url=path)
-    return r.json()
+    try:
+        r = requests.get(url=path, timeout=10)
+        return r.json()
+    except Timeout:
+        return 'ERROR: Timeout'
