@@ -185,7 +185,7 @@ if __name__ == '__main__':
     c = arm.openClient()
     uvicorn.run(app, host='127.0.0.1', port=8000)
 
-    print('Service on')
+    # print('Service on')
 
     # while True:
 
