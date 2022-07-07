@@ -8,9 +8,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "vant": "^3.4.9",
     "vite-plugin-style-import": "^1.4.1",
     "vue": "^3.2.25",
+    "vue-axios": "^3.4.1",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {

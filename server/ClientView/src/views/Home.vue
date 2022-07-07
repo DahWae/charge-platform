@@ -4,7 +4,18 @@ import {
     Row,
     Col,
     Image,
+    Toast,
 } from 'vant'
+
+import axios from 'axios'
+
+const onTest = () => {
+    axios.get('http://127.0.0.1:8000/')
+        .then(function (response) {
+            console.log(response.data)
+            Toast(response.data)
+        })
+};
 </script>
 
 <template>
@@ -32,6 +43,14 @@ import {
         <h3>
             查詢車輛
         </h3>
+        </Col>
+    </Row>
+
+    <Row justify="center">
+        <Col span="10">
+        <Button round block type="primary" @click="onTest">
+            Test
+        </Button>
         </Col>
     </Row>
 </template>

@@ -3,6 +3,7 @@ import multiprocessing
 import asyncio
 import cv2
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import datetime
 
@@ -121,6 +122,12 @@ def contains(list, filter):
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*']
+)
 
 
 @app.post('/action/charge')
