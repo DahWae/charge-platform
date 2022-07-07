@@ -6,6 +6,9 @@ from requests.exceptions import Timeout
 
 url = 'http://10.42.0.1'  # TODO: change the url
 
+class ConnectionError(Exception):
+    # raise when connection timeout
+    pass
 
 def mapMode(mode):
     path = url + ':6010/map/mapMode'
@@ -14,7 +17,7 @@ def mapMode(mode):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def saveMap(name):
@@ -24,7 +27,7 @@ def saveMap(name):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def deleteMap(name):
@@ -34,7 +37,7 @@ def deleteMap(name):
         r = requests.post(url=path, json=json, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def switchMap(name):
@@ -44,7 +47,7 @@ def switchMap(name):
         r = requests.post(url=path, json=json, timeout=10)
         return r.json()
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def currentMap():
@@ -53,7 +56,7 @@ def currentMap():
         r = requests.get(url=path, timeout=10)
         return r.text
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def renameMap(name, newName):
@@ -63,7 +66,7 @@ def renameMap(name, newName):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def getAllMap():
@@ -72,7 +75,7 @@ def getAllMap():
         r = requests.get(url=path, timeout=10)
         return r.json()
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def newGoalPoint(name):
@@ -82,7 +85,7 @@ def newGoalPoint(name):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def deleteGoalPoint(mapName, pointName):
@@ -92,7 +95,7 @@ def deleteGoalPoint(mapName, pointName):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def updateGoalPoint(mapName, pointName, newPointName):
@@ -103,7 +106,7 @@ def updateGoalPoint(mapName, pointName, newPointName):
         r = requests.post(url=path, params=params, timeout=10)
         return r.text
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def currentAllGoalPoint():
@@ -112,7 +115,7 @@ def currentAllGoalPoint():
         r = requests.get(url=path, timeout=10)
         return r.json()
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def allGoalPoint(name):
@@ -122,7 +125,7 @@ def allGoalPoint(name):
         r = requests.post(url=path, json=json, timeout=10)
         return r.json()
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def currentXY():
@@ -131,7 +134,7 @@ def currentXY():
         r = requests.get(url=path, timeout=10)
         return r.json()
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def moveToGoal(point):
@@ -141,7 +144,7 @@ def moveToGoal(point):
         r = requests.post(url=path, json=json, timeout=10)
         return r.text
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def annulment():
@@ -150,7 +153,7 @@ def annulment():
         r = requests.post(url=path, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def currentStatus():
@@ -160,7 +163,7 @@ def currentStatus():
         ret = r.json()
         return ret['taskState']
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def battery():
@@ -169,7 +172,7 @@ def battery():
         r = requests.get(url=path, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def velocity(name):
@@ -179,7 +182,7 @@ def velocity(name):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def sensor():
@@ -188,7 +191,7 @@ def sensor():
         r = requests.get(url=path, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def light(name, flag):
@@ -198,7 +201,7 @@ def light(name, flag):
         r = requests.post(url=path, params=params, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def startMagneticFind():
@@ -207,7 +210,7 @@ def startMagneticFind():
         r = requests.get(url=path, timeout=10)
         return r.text
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def startMagneticGoal():
@@ -217,7 +220,7 @@ def startMagneticGoal():
         r = requests.post(url=path, json=json, timeout=10)
         return r.text
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def stopMagnetic():
@@ -226,7 +229,7 @@ def stopMagnetic():
         r = requests.get(url=path, timeout=10)
         return r
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError
 
 
 def magneticState():
@@ -235,4 +238,4 @@ def magneticState():
         r = requests.get(url=path, timeout=10)
         return r.json()
     except Timeout:
-        return 'ERROR: Timeout'
+        raise ConnectionError

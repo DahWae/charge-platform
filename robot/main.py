@@ -1,4 +1,5 @@
 # system package
+import json
 import multiprocessing
 import asyncio
 import cv2
@@ -49,36 +50,33 @@ def printPosition():
     return
 
 
-async def goCharge(target):
-    # AMR
-    printPosition()
-    allPoint = amr.currentAllGoalPoint()
-    print('all point loaded')
-    # match target.space and GoalPoint coordination
-    matchedPoint = contains(allPoint, lambda x: x['name'] == target.space)
-    if matchedPoint is None:
-        print('ERR, Point not found')
+async def goCharge(target: Target):
+    try:
+        # AMR
+        allPoint = amr.currentAllGoalPoint()
+        # match target.space and GoalPoint coordination
+        matchedPoint = contains(allPoint, lambda x: x['name'] == target.space)
+        if matchedPoint is None:
+            print('ERR, Point not found')
+            return
+
+        amr.moveToGoal(matchedPoint)
+        await asyncio.sleep(1)
+        while(amr.currentStatus() == 'running'):
+            await asyncio.sleep(2)
+
+        print(amr.startMagneticFind())
+        await asyncio.sleep(1)
+        while(amr.magneticState() == 1):
+            await asyncio.sleep(2)
+
+        print(amr.startMagneticGoal())
+        await asyncio.sleep(1)
+        while(amr.magneticState() == 1):
+            await asyncio.sleep(2)
+    except amr.ConnectionError:
+        print('AMR Connection ERROR')
         return
-    print('point found, moving')
-    print(matchedPoint)
-    print(amr.moveToGoal(matchedPoint))
-    await asyncio.sleep(1)
-    while(amr.currentStatus() == 'running'):
-        print('still moving')
-        await asyncio.sleep(2)
-    print('start magnetic find')
-    print(amr.startMagneticFind())
-    await asyncio.sleep(1)
-    while(amr.magneticState() == 1):
-        print('still finding')
-        await asyncio.sleep(2)
-    print('start magnetic goal')
-    print(amr.startMagneticGoal())
-    await asyncio.sleep(1)
-    while(amr.magneticState() == 1):
-        print('still tracing')
-        await asyncio.sleep(2)
-    print('end of charge')
 
     # ARM
     # arm.postCoord(client=c, coords=coords)
@@ -93,32 +91,33 @@ async def goReturn():
     # ARM
 
     # AMR
-    allPoint = amr.currentAllGoalPoint()
-    # match target to Base
-    matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
-    amr.moveToGoal(matchedPoint)
-    # while(amr.currentStatus()):
-    #     await asyncio.sleep(2)
-    # amr.startMagneticFind()
-    # while(amr.magneticState()):
-    #     await asyncio.sleep(2)
-    # amr.startMagneticGoal()
-    # while(amr.magneticState()):
-    #     await asyncio.sleep(2)
+    try:
+        allPoint = amr.currentAllGoalPoint()
+        # match target to Base
+        matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
+        if matchedPoint is None:
+            print('ERR, Point not found')
+            return
+        amr.moveToGoal(matchedPoint)
+        # while(amr.currentStatus()):
+        #     await asyncio.sleep(2)
+        # amr.startMagneticFind()
+        # while(amr.magneticState()):
+        #     await asyncio.sleep(2)
+        # amr.startMagneticGoal()
+        # while(amr.magneticState()):
+        #     await asyncio.sleep(2)
+    except amr.ConnectionError:
+        print('AMR Connection ERROR')
+        return
     return
-
-
-def getRobotStatus():
-    amrStatus = amr.currentStatus()
-
-    return amrStatus
 
 
 def contains(list, filter):
     for x in list:
         if filter(x):
             return x
-    return False
+    return None
 
 
 app = FastAPI()
@@ -161,7 +160,7 @@ async def returnToBase():
 
 @app.get('/action/status')
 async def returnStatus():
-    return {'status': robot.status, 'startFlag': robot.startFlag}
+    return {'amrStatus': amr.currentStatus, 'robotStatus': json.dumps(robot.__dict__)}
 
 
 @app.post('/test')
@@ -174,7 +173,7 @@ async def testResponse(test: str):
         await asyncio.sleep(1)
         if cnt > 30:
             break
-    return 'Response'
+    return {'message': 'Response'}
 
 
 @app.get("/")
@@ -186,38 +185,15 @@ if __name__ == '__main__':
     inView = multiprocessing.Value('i', 0)
     # multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    print(amr.annulment())
-    print(amr.stopMagnetic())
+    try:
+        amr.annulment()
+        amr.stopMagnetic()
+    except amr.ConnectionError:
+        print('AMR Connection ERROR')
 
-    c = arm.openClient()
+    try:
+        c = arm.openClient()
+    except arm.ConnectionERROR:
+        print('Robot Arm Connection ERROR')
+
     uvicorn.run(app, host='127.0.0.1', port=8000)
-
-    # print('Service on')
-
-    # while True:
-
-    #     if robot.startFlag:
-    #         match robot.status:
-    #             case 'charge':
-    #                 print('start of charge')
-    #                 goCharge(robot.target)
-    #                 robot.startFlag = False
-    #             case 'return':
-    #                 print('start of return')
-    #                 goReturn()
-    #                 robot.status = 'idle'
-    #                 robot.startFlag = False
-
-    #     print(arm.getReturn(client=c))
-
-    #     match arm.getReturn(client=c):
-    #         case 0:  # active mode
-    #             if inView.value:   # marker found
-    #                 arm.postCoord(client=c, coords=coords)
-    #                 # start after the coordinate is given
-    #                 arm.postState(client=c, state=1)
-    #                 print('posted')
-    #         case 1:  # hold mode
-    #             arm.postState(client=c, state=2)
-    #         case 2:  # idle mode
-    #             arm.postState(client=c, state=0)
