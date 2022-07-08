@@ -196,4 +196,4 @@ if __name__ == '__main__':
     except arm.ConnectionERROR:
         print('Robot Arm Connection ERROR')
 
-    uvicorn.run(app, host='127.0.0.1', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
