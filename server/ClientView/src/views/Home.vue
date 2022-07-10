@@ -10,7 +10,7 @@ import {
 import axios from 'axios'
 
 const onTest = () => {
-    axios.get('http://127.0.0.1:8000/')
+    axios.get(serverUrl + '/')
         .then(function (response) {
             console.log(response.data)
             Toast(response.data)
@@ -22,7 +22,7 @@ const onTest = () => {
 
     <div class="gap-30" />
     <Row justify="center">
-        <img alt="NTNU logo" width="200" height="200" src="@/assets/logo.png" @click="$router.push('/about')" />
+        <img class="logo" alt="NTNU logo" src="@/assets/logo.png" @click="$router.push('/about')" />
     </Row>
     <Row justify="center">
         <h2>
@@ -33,13 +33,13 @@ const onTest = () => {
 
     <Row justify="space-around">
         <Col span="12" @click="$router.push('/register')">
-        <img alt="Registration" width="130" height="130" src="@/assets/Charging-station.png" />
+        <img class="menu" alt="Registration" src="@/assets/Charging-station.png" />
         <h3>
             預約充電
         </h3>
         </Col>
         <Col span="12" @click="$router.push('/search')">
-        <img alt="Search" width="130" height="130" src="@/assets/search.png" />
+        <img class="menu" alt="Search" src="@/assets/search.png" />
         <h3>
             查詢車輛
         </h3>
@@ -56,6 +56,16 @@ const onTest = () => {
 </template>
 
 <style>
+.logo{
+    width: 40%;
+    height: 40%;
+}
+
+.menu{
+    width: 65%;
+    height: 65%;
+}
+
 .gap-20 {
     width: 100%;
     height: 20px;

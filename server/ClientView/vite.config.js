@@ -15,4 +15,10 @@ export default defineConfig({
       resolves: [VantResolve()],
     }),
   ],
+  server: {
+    host: '0.0.0.0'
+  },
+  define: {
+    serverUrl: JSON.stringify('http://192.168.0.25:8001')
+  }
 })

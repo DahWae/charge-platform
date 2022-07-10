@@ -1,8 +1,31 @@
+import datetime
+import sys
 import asyncio
-from fastapi import FastAPI
+import sqlite3 as sl
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import uvicorn
+from sse_starlette.sse import EventSourceResponse
+from loguru import logger
 
+
+class SubmittForm(BaseModel):
+    ts: float = None
+    Plate: str
+    ParkID: str
+    Power: float
+    PickTime: str
+    Time:datetime.time = None
+
+
+logger.remove()
+logger.add(sys.stdout, colorize=True,
+           format="<green>{time:HH:mm:ss}</green> | {level} | <level>{message}</level>")
+
+con = sl.connect('test.db')
+cur = con.cursor()
+# con.execute('create table vehicle (ts, plate, parkID, power, pickTime)')
 
 app = FastAPI()
 
@@ -12,9 +35,42 @@ app.add_middleware(
     allow_methods=['*']
 )
 
+
+@app.get('/stream')
+async def taskManager(request: Request):
+    async def eventGenerator():
+        num = 0
+        while True:
+            if await request.is_disconnected():
+                break  # stop streaming when disconnected
+            yield {
+                "event": "new_message",
+                "id": "message_id",
+                "retry": 15000,
+                "data": {
+                    'data1': num,
+                    'data2': 'Hello'
+                }
+            }
+            logger.info(num)
+            num += 1
+            await asyncio.sleep(1)  # stream delay
+    return EventSourceResponse(eventGenerator())
+
+
+@app.post('/submit')
+async def submit(form: SubmittForm):
+    form.Time = datetime.time()
+    now = datetime.datetime.now()
+    form.ts = datetime.datetime.timestamp(now)
+    cur.execute('insert into vehicle values(?,?,?,?,?)', (form.ts, form.Plate, form.ParkID, form.Power/10, form.PickTime))
+    print(form)
+    return
+
+
 @app.get('/')
 async def root():
     return {"message": "Hello World"}
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host='0.0.0.0', port = 8001)
+    uvicorn.run(app=app, host='0.0.0.0', port=8001)
