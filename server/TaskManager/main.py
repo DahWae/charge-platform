@@ -16,16 +16,16 @@ class SubmittForm(BaseModel):
     ParkID: str
     Power: float
     PickTime: str
-    Time:datetime.time = None
+    Time: datetime.time = None
 
 
 logger.remove()
 logger.add(sys.stdout, colorize=True,
            format="<green>{time:HH:mm:ss}</green> | {level} | <level>{message}</level>")
 
-con = sl.connect('test.db')
-cur = con.cursor()
-# con.execute('create table vehicle (ts, plate, parkID, power, pickTime)')
+conn = sl.connect('test.db')
+cur = conn.cursor()
+# conn.execute('''CREATE TABLE vehicle (ts, plate, parkID, power, pickTime, done)''')
 
 app = FastAPI()
 
@@ -38,21 +38,27 @@ app.add_middleware(
 
 @app.get('/stream')
 async def taskManager(request: Request):
+    def newMessage():  # check new value
+        return True
+
     async def eventGenerator():
         num = 0
         while True:
             if await request.is_disconnected():
                 break  # stop streaming when disconnected
-            yield {
-                "event": "new_message",
-                "id": "message_id",
-                "retry": 15000,
-                "data": {
-                    'data1': num,
-                    'data2': 'Hello'
+
+            if newMessage():
+                yield {
+                    "event": "new_message",
+                    "id": "message_id",
+                    "retry": 15000,
+                    "data": {
+                        'data1': num,
+                        'data2': 'Hello'
+                    }
                 }
-            }
-            logger.info(num)
+                logger.info(num)
+
             num += 1
             await asyncio.sleep(1)  # stream delay
     return EventSourceResponse(eventGenerator())
@@ -63,8 +69,9 @@ async def submit(form: SubmittForm):
     form.Time = datetime.time()
     now = datetime.datetime.now()
     form.ts = datetime.datetime.timestamp(now)
-    cur.execute('insert into vehicle values(?,?,?,?,?)', (form.ts, form.Plate, form.ParkID, form.Power/10, form.PickTime))
-    print(form)
+    cur.execute('INSERT INTO vehicle VALUES(?,?,?,?,?)', (form.ts,
+                form.Plate, form.ParkID, form.Power/10, form.PickTime, False))
+    conn.commit()
     return
 
 

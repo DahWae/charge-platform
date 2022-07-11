@@ -99,8 +99,9 @@ async def goReturn():
             print('ERR, Point not found')
             return
         amr.moveToGoal(matchedPoint)
-        # while(amr.currentStatus()):
-        #     await asyncio.sleep(2)
+        await asyncio.sleep(1)
+        while(amr.currentStatus() == 'running'):
+            await asyncio.sleep(2)
         # amr.startMagneticFind()
         # while(amr.magneticState()):
         #     await asyncio.sleep(2)

@@ -9,7 +9,20 @@ import {
 
 import axios from 'axios'
 
-const onTest = () => {
+const onCharge = () => {
+    axios.post(robotUrl + '/action/charge',
+        {
+            space: 'P1'
+        })
+    axios.get(serverUrl + '/')
+        .then(function (response) {
+            console.log(response.data)
+            Toast(response.data)
+        })
+};
+
+const onReturn = () => {
+    axios.post(robotUrl + '/action/return',{})
     axios.get(serverUrl + '/')
         .then(function (response) {
             console.log(response.data)
@@ -48,22 +61,30 @@ const onTest = () => {
 
     <Row justify="center">
         <Col span="10">
-        <Button round block type="primary" @click="onTest">
-            Test
+        <Button round block type="primary" @click="onCharge">
+            Charge
+        </Button>
+        </Col>
+    </Row>
+
+    <Row justify="center">
+        <Col span="10">
+        <Button round block type="primary" @click="onReturn">
+            Return
         </Button>
         </Col>
     </Row>
 </template>
 
 <style>
-.logo{
-    width: 40%;
-    height: 40%;
+.logo {
+    width: 150px;
+    height: 150px;
 }
 
-.menu{
-    width: 65%;
-    height: 65%;
+.menu {
+    width: 120px;
+    height: 120px;
 }
 
 .gap-20 {
