@@ -6,7 +6,7 @@ import math
 
 # ArUco variables
 ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_6X6_250)
-ARUCO_LENGTH = 0.033
+ARUCO_LENGTH = 0.06
 
 # camera parameters
 f = open('./cfg/calibrationC310.pckl', 'rb')

@@ -2,8 +2,13 @@
 import time
 import requests
 import datetime
+import asyncio
+import cv2
+import pickle
 
 import amr
+import arm
+import camera
 
 
 class Target:
@@ -47,6 +52,7 @@ def apiTest():
     print(r.text)
     return
 
+
 def amrTest():
     # allPoint = amr.currentAllGoalPoint()
     # print('all point loaded')
@@ -70,7 +76,6 @@ def amrTest():
     # print(amr.allGoalPoint(name=mapName))
     # print(amr.currentAllGoalPoint())
 
-
     print(amr.startMagneticGoal(name=0))
 
     # print(amr.allGoalPoint(name='Uni'))
@@ -84,11 +89,79 @@ def amrTest():
     return
 
 
+async def armTest(c, mode):
+
+    if(arm.getReturn(client=c) == 0):
+        match mode:
+
+            case 0:
+                print('return mode')
+                arm.postState(client=c, state=1)
+                await asyncio.sleep(1)
+                arm.postState(client=c, state=0)
+
+            case 1:
+                print('ready mode')
+                arm.postState(client=c, state=2)
+                await asyncio.sleep(0.5)
+                print(arm.getReturn(client=c))
+                while(arm.getReturn(client=c) == 1):
+                    await asyncio.sleep(0.5)
+                    arm.postState(client=c, state=0)
+                    print('waiting')
+
+            case 2:
+                print('test mode')
+                cam = cv2.VideoCapture(0)
+                coords = []
+                coords.append([-100, 0, -50, 0, 15, 0])
+                coords.append([0, -150, 0, -20, -10, 0])
+                coords.append([-50, -50, -50, -15, 15, 45])
+                coords.append([50, -30, 0, -10, -20, 30])
+                coords.append([-30, 50, 0, 10, 10, -90])
+
+                ans=[]
+
+                for item in coords:
+                    arm.postCoord(client=c, coords=item)
+                    arm.postState(client=c, state=6)
+                    await asyncio.sleep(1)
+                    print(arm.getReturn(client=c))
+                    while(arm.getReturn(client=c) == 1):
+                        await asyncio.sleep(0.5)
+                        arm.postState(client=c, state=0)
+                        print('waiting')
+                    for _ in range(10):
+                        ret, frame = cam.read()
+                        cv2.imshow('frame', frame)
+                        coord = camera.getCoord(frame=frame)
+                        if coord is not None:
+                            print(coord[0])
+                            ans.append(coord[0])
+                            break
+                        else:
+                            print('coord is None!!')
+
+                        await asyncio.sleep(1)
+                        
+                f = open('./result/eyeHandCali.pckl', 'wb')
+                pickle.dump((ans), f)
+                f.close()
+
+                print(ans)
+
+    else:
+        print('reset mode')
+        arm.postState(client=c, state=1)
+
+    print('end')
+
 if __name__ == '__main__':
-    chargeTest()
+    c = arm.openClient()
+    # chargeTest()
     # returnTest()
     # apiTest()
     # amrTest()
     # amr.annulment()
     # amr.stopMagnetic()
-
+    asyncio.run(armTest(c=c, mode=0))
