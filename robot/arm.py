@@ -9,11 +9,19 @@ def openClient():
     return c
 
 def postCoord(client, coords):
+    '''
     client.write_single_register(129, int(coords[0]+1000))
     client.write_single_register(130, int(-coords[1]+1000))
     client.write_single_register(131, int(-coords[2]+1000))
     client.write_single_register(132, int((coords[3]+360)*100))
     client.write_single_register(133, int((-coords[4]+360)*100))
+    client.write_single_register(134, int((-coords[5]+360)*100))
+    '''
+    client.write_single_register(129, int(-coords[1]+1000))
+    client.write_single_register(130, int(coords[0]+1000))
+    client.write_single_register(131, int(-coords[2]+1000))
+    client.write_single_register(132, int((-coords[4]+360)*100))
+    client.write_single_register(133, int((coords[3]+360)*100))
     client.write_single_register(134, int((-coords[5]+360)*100))
     return
 
@@ -22,7 +30,7 @@ def postState(client, state):
     return
 
 def getCoord(client):
-    in_regs=(client.read_holding_registers(141, 6))
+    in_regs=(client.read_holding_registers(400, 6))
     return in_regs
 
 def getReturn(client):

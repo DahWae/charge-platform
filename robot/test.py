@@ -120,7 +120,8 @@ async def armTest(c, mode):
                 coords.append([50, -30, 0, -10, -20, 30])
                 coords.append([-30, 50, 0, 10, 10, -90])
 
-                ans=[]
+                ans = []
+                hans = []
 
                 for item in coords:
                     arm.postCoord(client=c, coords=item)
@@ -138,17 +139,41 @@ async def armTest(c, mode):
                         if coord is not None:
                             print(coord[0])
                             ans.append(coord[0])
+                            hans.append(item)
                             break
                         else:
                             print('coord is None!!')
 
                         await asyncio.sleep(1)
-                        
+
                 f = open('./result/eyeHandCali.pckl', 'wb')
+                fh = open('./result/handCoord.pckl', 'wb')
                 pickle.dump((ans), f)
+                pickle.dump((hans), fh)
                 f.close()
+                fh.close()
 
                 print(ans)
+            case 3:
+                print('test coord')
+                coords = []
+                coords.append([0, 0, 0, 0, 0, 3])
+
+                for item in coords:
+                    arm.postCoord(client=c, coords=item)
+                    arm.postState(client=c, state=6)
+                    await asyncio.sleep(1)
+                    print(arm.getReturn(client=c))
+                    while(arm.getReturn(client=c) == 1):
+                        await asyncio.sleep(0.5)
+                        arm.postState(client=c, state=0)
+                        print('waiting')
+
+            case 4:
+                print('reading mode')
+                ret = arm.getCoord(client=c)
+                for el in ret:
+                    print(el)
 
     else:
         print('reset mode')
@@ -157,11 +182,11 @@ async def armTest(c, mode):
     print('end')
 
 if __name__ == '__main__':
-    c = arm.openClient()
-    # chargeTest()
+    # c = arm.openClient()
+    chargeTest()
     # returnTest()
     # apiTest()
     # amrTest()
     # amr.annulment()
     # amr.stopMagnetic()
-    asyncio.run(armTest(c=c, mode=0))
+    # asyncio.run(armTest(c=c, mode=4))

@@ -51,6 +51,7 @@ def printPosition():
 
 
 async def goCharge(target: Target):
+    '''
     try:
         # AMR
         allPoint = amr.currentAllGoalPoint()
@@ -77,13 +78,35 @@ async def goCharge(target: Target):
     except amr.ConnectionError:
         print('AMR Connection ERROR')
         return
+    '''
 
     # ARM
-    # arm.postCoord(client=c, coords=coords)
-    # arm.postState(client=c, state=1)
-    # while(~arm.getReturn(client=c)):
-    #     None
+
+    arm.postState(client=c, state=2)
+    await asyncio.sleep(0.5)
+    print(arm.getReturn(client=c))
+    while(arm.getReturn(client=c) == 1):
+        await asyncio.sleep(0.5)
+        arm.postState(client=c, state=0)
+        print('waiting')
+    await asyncio.sleep(3)
+    if inView.value ==1:
+        arm.postCoord(client=c, coords=coords)
+        arm.postState(client=c, state=3)
+        await asyncio.sleep(1)
+        print(arm.getReturn(client=c))
+        while(arm.getReturn(client=c) == 1):
+            await asyncio.sleep(0.5)
+            arm.postState(client=c, state=0)
+            print('waiting')
+        await asyncio.sleep(3)
     # arm.postState(client=c, state=2)
+    # await asyncio.sleep(0.5)
+    # print(arm.getReturn(client=c))
+    # while(arm.getReturn(client=c) == 1):
+    #     await asyncio.sleep(0.5)
+    #     arm.postState(client=c, state=0)
+    #     print('waiting')
     return
 
 
@@ -140,6 +163,7 @@ async def chargeTarget(target: Target):
             print('start of charge')
             await goCharge(robot.target)
             robot.startFlag = False
+            robot.status = 'idle'
             return True
     return False
 
@@ -184,16 +208,19 @@ async def root():
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
-    # multiprocessing.Process(target=subP, args=(coords, inView)).start()
+    multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    try:
-        amr.annulment()
-        amr.stopMagnetic()
-    except amr.ConnectionError:
-        print('AMR Connection ERROR')
+    # try:
+    #     amr.annulment()
+    #     amr.stopMagnetic()
+    # except amr.ConnectionError:
+    #     print('AMR Connection ERROR')
 
     try:
         c = arm.openClient()
+        arm.postState(client=c, state=1)
+        asyncio.run(asyncio.sleep(1))
+        arm.postState(client=c, state=0)
     except arm.ConnectionERROR:
         print('Robot Arm Connection ERROR')
 
