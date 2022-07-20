@@ -182,8 +182,12 @@ async def armTest(c, mode):
     print('end')
 
 if __name__ == '__main__':
-    # c = arm.openClient()
-    chargeTest()
+    c = arm.openClient()
+    while True:
+        coord = arm.getCoord(client=c)
+        print(coord)
+        asyncio.run(asyncio.sleep(0.5))
+    # chargeTest()
     # returnTest()
     # apiTest()
     # amrTest()

@@ -5,7 +5,9 @@ class ConnectionERROR(Exception):
     pass
 
 def openClient():
-    c = ModbusClient(host='192.168.100.4', port=502,unit_id=1,auto_open=True)    #192.168.1.116為UR的IP位置
+    # c = ModbusClient(host='192.168.100.4', port=502,unit_id=1,auto_open=True)    #192.168.1.116為UR的IP位置
+    c = ModbusClient(host='192.168.0.28', port=502,unit_id=1,auto_open=True)    #192.168.1.116為UR的IP位置
+
     return c
 
 def postCoord(client, coords):
@@ -30,8 +32,18 @@ def postState(client, state):
     return
 
 def getCoord(client):
-    in_regs=(client.read_holding_registers(400, 6))
-    return in_regs
+    coord=(client.read_holding_registers(400, 6))
+    # print(coord)
+    for j, e in enumerate(coord):
+        if e>32767:
+            coord[j] = e-65535
+            
+    for j, e in enumerate(coord):
+        if j<3:
+            coord[j] = e/10
+        else:
+            coord[j] = e/1000
+    return coord
 
 def getReturn(client):
     return client.read_holding_registers(147,1)[0]
