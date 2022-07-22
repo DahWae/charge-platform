@@ -9,7 +9,7 @@ ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_6X6_250)
 ARUCO_LENGTH = 0.06
 
 # camera parameters
-f = open('./cfg/calibrationC310.pckl', 'rb')
+f = open('./cfg/calibrationC270.pckl', 'rb')
 cameraMatrix, distCoeffs, rvecs, tvecs = pickle.load(f)
 
 def rot2eul(R):
@@ -71,15 +71,28 @@ def getCoord(frame):
                 ang[0]=ang[0]+360
             ang[0] = ang[0]-180
             
-            temp.append(tvec[i, 0, 0]*1000)  # x    (mm)
-            temp.append(tvec[i, 0, 1]*1000)  # y    (mm)
+            temp.append(tvec[i, 0, 1]*1000)  # x    (mm)    marker-x is robot-y
+            temp.append(-tvec[i, 0, 0]*1000)  # y    (mm)
             temp.append(tvec[i, 0, 2]*1000)  # z    (mm)
-            temp.append(ang[0])             # rx    (deg)
-            temp.append(ang[1])             # ry    (deg)
+            temp.append(ang[1])             # rx    (deg)
+            temp.append(-ang[0])             # ry    (deg)
             temp.append(ang[2])             # rz    (deg)
 
             coord = []
             coord.append(temp)
-        return coord
+        return coord[0]
     else:
         return None
+
+
+def onTarget(coord):
+
+    passed = True
+    for e in coord[:2]:
+        if abs(e) > 25:
+            passed = False
+    for e in coord[3:]:
+        if abs(e)>4:
+            passed = False
+
+    return passed

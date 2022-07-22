@@ -30,6 +30,59 @@ def contains(list, filter):
     return None
 
 
+def newRobot():
+    return RobotStatus()
+
+
+async def pose(client, pose):
+    match pose:
+        case 'default':
+            arm.postState(client=client, state=1)
+            await asyncio.sleep(0.5)    
+            print(arm.getReturn(client=client))
+            while(arm.getReturn(client=client) == 1):
+                await asyncio.sleep(0.5)
+                arm.postState(client=client, state=0)
+                print('waiting')
+
+        case 'ready':
+            arm.postState(client=client, state=2)
+            await asyncio.sleep(0.5)    
+            print(arm.getReturn(client=client))
+            while(arm.getReturn(client=client) == 1):
+                await asyncio.sleep(0.5)
+                arm.postState(client=client, state=0)
+                print('waiting')
+
+        case 'aim':
+            arm.postState(client=client, state=3)
+            await asyncio.sleep(0.5)    
+            print(arm.getReturn(client=client))
+            while(arm.getReturn(client=client) == 1):
+                await asyncio.sleep(0.5)
+                arm.postState(client=client, state=0)
+                print('waiting')
+
+        case 'plug':
+            arm.postState(client=client, state=4)
+            await asyncio.sleep(0.5)    
+            print(arm.getReturn(client=client))
+            while(arm.getReturn(client=client) == 1):
+                await asyncio.sleep(0.5)
+                arm.postState(client=client, state=0)
+                print('waiting')
+
+        case 'charge':
+            arm.postState(client=client, state=5)
+            await asyncio.sleep(0.5)    
+            print(arm.getReturn(client=client))
+            while(arm.getReturn(client=client) == 1):
+                await asyncio.sleep(0.5)
+                arm.postState(client=client, state=0)
+                print('waiting')
+
+    return
+
 async def goCharge(robotStatus: RobotStatus, target: Target):
     if robotStatus.status == 'idle':
         if robotStatus.startFlag == False:

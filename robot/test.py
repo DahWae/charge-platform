@@ -5,6 +5,7 @@ import datetime
 import asyncio
 import cv2
 import pickle
+import numpy as np
 
 import amr
 import arm
@@ -115,9 +116,9 @@ async def armTest(c, mode):
                 cam = cv2.VideoCapture(0)
                 coords = []
                 coords.append([-100, 0, -50, 0, 15, 0])
-                coords.append([0, -150, 0, -20, -10, 0])
-                coords.append([-50, -50, -50, -15, 15, 45])
-                coords.append([50, -30, 0, -10, -20, 30])
+                coords.append([0, -150, 0, -20, -5, 0])
+                coords.append([-50, -50, -50, -25, 5, 45])
+                coords.append([50, -30, 0, -10, -15, 30])
                 coords.append([-30, 50, 0, 10, 10, -90])
 
                 ans = []
@@ -126,25 +127,54 @@ async def armTest(c, mode):
                 for item in coords:
                     arm.postCoord(client=c, coords=item)
                     arm.postState(client=c, state=6)
+
                     await asyncio.sleep(1)
                     print(arm.getReturn(client=c))
+
                     while(arm.getReturn(client=c) == 1):
                         await asyncio.sleep(0.5)
                         arm.postState(client=c, state=0)
                         print('waiting')
-                    for _ in range(10):
+
+                    coord = []
+
+                    for _ in range(300):
                         ret, frame = cam.read()
                         cv2.imshow('frame', frame)
-                        coord = camera.getCoord(frame=frame)
-                        if coord is not None:
-                            print(coord[0])
-                            ans.append(coord[0])
-                            hans.append(item)
-                            break
+
+                        capture = camera.getCoord(frame=frame)
+
+                        if capture is not None:
+                            print('captured')
+                            coord.append(capture)
+
+                            if len(coord)>30:
+                                allCoord=[[] for _ in range(6)]
+                                allStd=[[] for _ in range(6)]
+                                averageCoord=[0,0,0,0,0,0]
+                                for e in coord:
+                                    for i, j in enumerate(e):
+                                        allCoord[i].append(j)
+                                        averageCoord[i] += j/len(coord)
+                                        
+                                testPass = 1
+                                for i, e in enumerate(allCoord):
+                                    allStd[i] = np.std(e)
+                                    if allStd[i]>3:
+                                        testPass=0
+                                        break
+                                if testPass:
+                                    # print(allStd)
+                                    print(averageCoord)
+                                    ans.append(averageCoord)
+                                    pose = arm.getCoord(client=c)
+                                    hans.append(pose)
+                                    break
+
+                                coord = []
+
                         else:
                             print('coord is None!!')
-
-                        await asyncio.sleep(1)
 
                 f = open('./result/eyeHandCali.pckl', 'wb')
                 fh = open('./result/handCoord.pckl', 'wb')
@@ -153,6 +183,7 @@ async def armTest(c, mode):
                 f.close()
                 fh.close()
 
+                print(hans)
                 print(ans)
             case 3:
                 print('test coord')
@@ -183,14 +214,14 @@ async def armTest(c, mode):
 
 if __name__ == '__main__':
     c = arm.openClient()
-    while True:
-        coord = arm.getCoord(client=c)
-        print(coord)
-        asyncio.run(asyncio.sleep(0.5))
-    # chargeTest()
+    # while True:
+        # coord = arm.getCoord(client=c)
+        # print(coord)
+        # asyncio.run(asyncio.sleep(0.5))
+    chargeTest()
     # returnTest()
     # apiTest()
     # amrTest()
     # amr.annulment()
     # amr.stopMagnetic()
-    # asyncio.run(armTest(c=c, mode=4))
+    # asyncio.run(armTest(c=c, mode=1))

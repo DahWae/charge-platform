@@ -14,6 +14,11 @@ const onCharge = () => {
         {
             space: 'P1'
         })
+        .then(function (response) {
+            console.log(response.data)
+            Toast(response.data)
+        })
+
     axios.get(serverUrl + '/')
         .then(function (response) {
             console.log(response.data)
@@ -22,7 +27,12 @@ const onCharge = () => {
 };
 
 const onReturn = () => {
-    axios.post(robotUrl + '/action/return',{})
+    axios.post(robotUrl + '/action/return', {})
+        .then(function (response) {
+            console.log(response.data)
+            Toast(response.data)
+        })
+        
     axios.get(serverUrl + '/')
         .then(function (response) {
             console.log(response.data)

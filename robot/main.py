@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import datetime
+import numpy as np
 
 import uvicorn
 
@@ -34,13 +35,43 @@ robot = RobotStatus()
 
 def subP(coords, inView):
     cam = cv2.VideoCapture(0)
+    coordAll = []
     while True:
         ret, frame = cam.read()
+
         coord = camera.getCoord(frame=frame)
+
         if coord is not None:
-            inView.value = 1
-            for i in range(6):
-                coords[i] = coord[0][i]
+
+            coordAll.append(coord)
+
+            if len(coordAll) > 30:
+                allCoord = [[] for _ in range(6)]
+                allStd = [[] for _ in range(6)]
+                averageCoord = [0, 0, 0, 0, 0, 0]
+
+                for e in coordAll:
+                    for i, j in enumerate(e):
+                        allCoord[i].append(j)
+                        averageCoord[i] += j/len(coordAll)
+
+                testPass = 1
+                inView.value = 0
+
+                for i, e in enumerate(allCoord):
+                    allStd[i] = np.std(e)
+                    if allStd[i] > 3:
+                        testPass = 0
+                        break
+
+                if testPass:
+                    inView.value = 1
+                    # print(averageCoord)
+                    for i in range(6):
+                        coords[i] = averageCoord[i]
+
+                coordAll = []
+
         else:
             inView.value = 0
 
@@ -51,6 +82,11 @@ def printPosition():
 
 
 async def goCharge(target: Target):
+
+    robot.status = 'charge'
+    robot.target = target
+    robot.startFlag = True
+
     '''
     try:
         # AMR
@@ -81,39 +117,54 @@ async def goCharge(target: Target):
     '''
 
     # ARM
+    await arm.pose(client=c, pose='prep')
 
-    arm.postState(client=c, state=2)
-    await asyncio.sleep(0.5)
-    print(arm.getReturn(client=c))
-    while(arm.getReturn(client=c) == 1):
-        await asyncio.sleep(0.5)
-        arm.postState(client=c, state=0)
-        print('waiting')
     await asyncio.sleep(3)
-    if inView.value ==1:
-        arm.postCoord(client=c, coords=coords)
-        arm.postState(client=c, state=3)
-        await asyncio.sleep(1)
-        print(arm.getReturn(client=c))
-        while(arm.getReturn(client=c) == 1):
+
+    onTarget = None
+    aiming = True
+
+    while aiming:
+        aiming = False
+        for _ in range(20):
+            if inView.value == 1:
+
+                onTarget = camera.onTarget(coords)
+                if onTarget:
+                    await arm.pose(client=c, pose='ready', coord=coords)
+                else:
+                    aiming = True
+                    await arm.pose(client=c, pose='aim', coord=coords)
+                break
+
+            else:
+                print('no marker found')
+
             await asyncio.sleep(0.5)
-            arm.postState(client=c, state=0)
-            print('waiting')
-        await asyncio.sleep(3)
-    # arm.postState(client=c, state=2)
-    # await asyncio.sleep(0.5)
-    # print(arm.getReturn(client=c))
-    # while(arm.getReturn(client=c) == 1):
-    #     await asyncio.sleep(0.5)
-    #     arm.postState(client=c, state=0)
-    #     print('waiting')
+
+    await arm.pose(client=c, pose='plug')
+    
+
+    robot.startFlag = False
+
     return
 
 
 async def goReturn():
+
+    robot.status = 'return'
+    robot.target = None
+    robot.startFlag = True
+
+    print('test')
     # ARM
+    await arm.pose(client=c, pose='unplug')
+    await arm.pose(client=c, pose='prep')
+    await arm.pose(client=c, pose='default')
+
 
     # AMR
+    '''
     try:
         allPoint = amr.currentAllGoalPoint()
         # match target to Base
@@ -125,15 +176,19 @@ async def goReturn():
         await asyncio.sleep(1)
         while(amr.currentStatus() == 'running'):
             await asyncio.sleep(2)
-        # amr.startMagneticFind()
-        # while(amr.magneticState()):
-        #     await asyncio.sleep(2)
-        # amr.startMagneticGoal()
-        # while(amr.magneticState()):
-        #     await asyncio.sleep(2)
+        amr.startMagneticFind()
+        while(amr.magneticState()):
+            await asyncio.sleep(2)
+        amr.startMagneticGoal()
+        while(amr.magneticState()):
+            await asyncio.sleep(2)
     except amr.ConnectionError:
         print('AMR Connection ERROR')
         return
+    '''
+    robot.status = 'idle'
+    robot.startFlag = False
+
     return
 
 
@@ -155,32 +210,30 @@ app.add_middleware(
 
 @app.post('/action/charge')
 async def chargeTarget(target: Target):
+    print(robot.status)
     if robot.status == 'idle':
         if robot.startFlag == False:
-            robot.status = 'charge'
-            robot.target = target
-            robot.startFlag = True
             print('start of charge')
-            await goCharge(robot.target)
-            robot.startFlag = False
-            robot.status = 'idle'
-            return True
-    return False
+            asyncio.create_task(goCharge(robot.target))
+            return {'message': 'True'}
+        print('Robot is in use!!')
+    else:
+        print('Status ERROR!!')
+        return {'message': 'False'}
 
 
 @app.post('/action/return')
 async def returnToBase():
+    print(robot.status)
     if robot.status == 'charge':
         if robot.startFlag == False:
-            robot.status = 'return'
-            robot.target = None
-            robot.startFlag = True
             print('start of return')
-            await goReturn()
-            robot.status = 'idle'
-            robot.startFlag = False
-            return True
-    return False
+            asyncio.create_task(goReturn())
+            return {'message': 'True'}
+        print('Robot is in use!!')
+    else:
+        print('Status ERROR!!')
+        return {'message': 'False'}
 
 
 @app.get('/action/status')
@@ -218,9 +271,9 @@ if __name__ == '__main__':
 
     try:
         c = arm.openClient()
-        arm.postState(client=c, state=1)
-        asyncio.run(asyncio.sleep(1))
-        arm.postState(client=c, state=0)
+
+        asyncio.run(arm.pose(client=c, pose='default'))
+
     except arm.ConnectionERROR:
         print('Robot Arm Connection ERROR')
 
