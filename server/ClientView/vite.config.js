@@ -19,7 +19,7 @@ export default defineConfig({
     host: '0.0.0.0'
   },
   define: {
-    serverUrl: JSON.stringify('http://192.168.100.5:8001'),
-    robotUrl: JSON.stringify('http://192.168.100.5:8000')
+    serverUrl: JSON.stringify('http://192.168.100.3:8001'),
+    robotUrl: JSON.stringify('http://192.168.100.3:8000')
   }
 })
