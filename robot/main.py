@@ -117,7 +117,7 @@ async def goCharge(target: Target):
     '''
 
     # ARM
-    await arm.pose(client=c, pose='prep')
+    await arm.setPose(client=c, pose='prep')
 
     await asyncio.sleep(3)
 
@@ -131,10 +131,10 @@ async def goCharge(target: Target):
 
                 onTarget = camera.onTarget(coords)
                 if onTarget:
-                    await arm.pose(client=c, pose='ready', coord=coords)
+                    await arm.setPose(client=c, pose='ready', coord=coords)
                 else:
                     aiming = True
-                    await arm.pose(client=c, pose='aim', coord=coords)
+                    await arm.setPose(client=c, pose='aim', coord=coords)
                 break
 
             else:
@@ -142,7 +142,7 @@ async def goCharge(target: Target):
 
             await asyncio.sleep(0.5)
 
-    await arm.pose(client=c, pose='plug')
+    await arm.setPose(client=c, pose='plug')
     
 
     robot.startFlag = False
@@ -158,9 +158,9 @@ async def goReturn():
 
     print('test')
     # ARM
-    await arm.pose(client=c, pose='unplug')
-    await arm.pose(client=c, pose='prep')
-    await arm.pose(client=c, pose='default')
+    await arm.setPose(client=c, pose='unplug')
+    await arm.setPose(client=c, pose='prep')
+    await arm.setPose(client=c, pose='default')
 
 
     # AMR
@@ -272,7 +272,7 @@ if __name__ == '__main__':
     try:
         c = arm.openClient()
 
-        asyncio.run(arm.pose(client=c, pose='default'))
+        asyncio.run(arm.setPose(client=c, pose='default'))
 
     except arm.ConnectionERROR:
         print('Robot Arm Connection ERROR')

@@ -52,7 +52,7 @@ def getReturn(client):
     return client.read_holding_registers(147, 1)[0]
 
 
-async def pose(client, pose, coord=None):
+async def setPose(client, pose, coord=None):
     match pose:
         case 'default':
             postState(client=client, state=1)
