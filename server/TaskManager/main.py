@@ -27,6 +27,8 @@ conn = sl.connect('test.db')
 cur = conn.cursor()
 # conn.execute('''CREATE TABLE vehicle (ts, plate, parkID, power, pickTime, done)''')
 
+robotUrl = 'http://192.168.100.2'
+
 app = FastAPI()
 
 app.add_middleware(
@@ -72,6 +74,15 @@ async def submit(form: SubmittForm):
     cur.execute('INSERT INTO vehicle VALUES(?,?,?,?,?)', (form.ts,
                 form.Plate, form.ParkID, form.Power/10, form.PickTime, False))
     conn.commit()
+
+    path = robotUrl + ':8000/action/charge'
+    json = {
+        'space': form.ParkID,
+        'leaveTime': form.PickTime,
+        'tStamp': form.ts,
+        'power': form.Power,
+        }
+
     return
 
 
