@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import datetime
 import numpy as np
+import sys
+from loguru import logger
 
 import uvicorn
 
@@ -16,6 +18,9 @@ import camera
 import amr
 import arm
 
+logger.remove()
+logger.add(sys.stdout, colorize=True,
+           format="<green>{time:HH:mm:ss}</green> | {level} | <level>{message}</level>")
 
 class Target(BaseModel):
     space: str
@@ -83,11 +88,12 @@ def printPosition():
 
 async def goCharge(target: Target):
 
+    logger.info('Start of Charge Task')
+
     robot.status = 'charge'
     robot.target = target
     robot.startFlag = True
 
-    '''
     try:
         # AMR
         allPoint = amr.currentAllGoalPoint()
@@ -112,59 +118,71 @@ async def goCharge(target: Target):
         while(amr.magneticState() == 1):
             await asyncio.sleep(2)
     except amr.ConnectionError:
-        print('AMR Connection ERROR')
+        logger.error('AMR Connection ERROR')
+        robot.startFlag = False
         return
-    '''
 
     # ARM
-    await arm.setPose(client=c, pose='prep')
+    try:
+        await arm.setPose(client=c, pose='prep')
 
-    await asyncio.sleep(3)
+        await asyncio.sleep(3)
 
-    onTarget = None
-    aiming = True
+        onTarget = None
+        aiming = True
 
-    while aiming:
-        aiming = False
-        for _ in range(20):
-            if inView.value == 1:
+        while aiming:
+            aiming = False
+            for _ in range(20):
+                if inView.value == 1:
 
-                onTarget = camera.onTarget(coords)
-                if onTarget:
-                    await arm.setPose(client=c, pose='ready', coord=coords)
+                    onTarget = camera.onTarget(coords)
+                    if onTarget:
+                        await arm.setPose(client=c, pose='ready', coord=coords)
+                    else:
+                        aiming = True
+                        await arm.setPose(client=c, pose='aim', coord=coords)
+                    break
+
                 else:
-                    aiming = True
-                    await arm.setPose(client=c, pose='aim', coord=coords)
-                break
+                    print('no marker found')
 
-            else:
-                print('no marker found')
+                await asyncio.sleep(0.5)
 
-            await asyncio.sleep(0.5)
-
-    await arm.setPose(client=c, pose='plug')
+        await arm.setPose(client=c, pose='plug')
     
+    except arm.ConnectionERROR:
+        logger.error('Robot Arm Connection ERROR')
+        robot.startFlag = False
+        return
 
     robot.startFlag = False
+
+    logger.info('End of Charge Task')
 
     return
 
 
 async def goReturn():
 
+    logger.info('Start of Return Task')
+
     robot.status = 'return'
     robot.target = None
     robot.startFlag = True
 
-    print('test')
     # ARM
-    await arm.setPose(client=c, pose='unplug')
-    await arm.setPose(client=c, pose='prep')
-    await arm.setPose(client=c, pose='default')
+    try:
+        await arm.setPose(client=c, pose='unplug')
+        await arm.setPose(client=c, pose='prep')
+        await arm.setPose(client=c, pose='default')
 
+    except arm.ConnectionERROR:
+        logger.error('Robot Arm Connection ERROR')
+        robot.startFlag = False
+        return
 
     # AMR
-    '''
     try:
         allPoint = amr.currentAllGoalPoint()
         # match target to Base
@@ -184,10 +202,13 @@ async def goReturn():
             await asyncio.sleep(2)
     except amr.ConnectionError:
         print('AMR Connection ERROR')
+        robot.startFlag = False
         return
-    '''
+
     robot.status = 'idle'
     robot.startFlag = False
+
+    logger.info('End of Return Task')
 
     return
 
@@ -210,30 +231,28 @@ app.add_middleware(
 
 @app.post('/action/charge')
 async def chargeTarget(target: Target):
-    print(robot.status)
     if robot.status == 'idle':
         if robot.startFlag == False:
-            print('start of charge')
+            robot.target = target
             asyncio.create_task(goCharge(robot.target))
             return {'message': 'True'}
-        print('Robot is in use!!')
+        logger.error('Robot in Use ERROR!!')
     else:
-        print('Status ERROR!!')
-        return {'message': 'False'}
+        logger.error('Status ERROR!!')
+    return {'message': 'False'}
 
 
 @app.post('/action/return')
 async def returnToBase():
-    print(robot.status)
     if robot.status == 'charge':
         if robot.startFlag == False:
             print('start of return')
             asyncio.create_task(goReturn())
             return {'message': 'True'}
-        print('Robot is in use!!')
+        logger.error('Robot in Use ERROR!!')
     else:
-        print('Status ERROR!!')
-        return {'message': 'False'}
+        logger.error('Status ERROR!!')
+    return {'message': 'False'}
 
 
 @app.get('/action/status')
@@ -263,11 +282,11 @@ if __name__ == '__main__':
     inView = multiprocessing.Value('i', 0)
     multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    # try:
-    #     amr.annulment()
-    #     amr.stopMagnetic()
-    # except amr.ConnectionError:
-    #     print('AMR Connection ERROR')
+    try:
+        amr.annulment()
+        amr.stopMagnetic()
+    except amr.ConnectionError:
+        print('AMR Connection ERROR')
 
     try:
         c = arm.openClient()
@@ -275,6 +294,6 @@ if __name__ == '__main__':
         asyncio.run(arm.setPose(client=c, pose='default'))
 
     except arm.ConnectionERROR:
-        print('Robot Arm Connection ERROR')
+        logger.error('Robot Arm Connection ERROR')
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
