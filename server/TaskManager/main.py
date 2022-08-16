@@ -25,7 +25,7 @@ logger.add(sys.stdout, colorize=True,
 
 conn = sl.connect('test.db')
 cur = conn.cursor()
-# conn.execute('''CREATE TABLE vehicle (ts, plate, parkID, power, pickTime, done)''')
+conn.execute('''CREATE TABLE if not exists Vehicle (ts, plate, parkID, power, pickTime, done)''')
 
 robotUrl = 'http://192.168.100.2'
 
@@ -36,6 +36,13 @@ app.add_middleware(
     allow_origins=['*'],
     allow_methods=['*']
 )
+
+
+async def mainTask():
+    while True:
+
+        await asyncio.sleep(10) # check every 10 sec
+
 
 
 @app.get('/stream')
@@ -91,4 +98,5 @@ async def root():
     return {"message": "Hello World"}
 
 if __name__ == '__main__':
+    asyncio.create_task(mainTask())
     uvicorn.run(app=app, host='0.0.0.0', port=8001)
