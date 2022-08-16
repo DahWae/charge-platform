@@ -35,6 +35,7 @@ const onConfirm = (value) => {
 };
 
 const onSubmit = (values) => {
+    console.log(values)
     axios.post(serverUrl + '/submit', values)
         .then(function (response) {
             console.log(response)

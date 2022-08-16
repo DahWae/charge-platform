@@ -32,7 +32,7 @@ class Target(BaseModel):
 class RobotStatus:
     target: Target = None
     status: str = 'idle'
-    startFlag: bool = False
+    isAvailable: bool = False
 
 
 robot = RobotStatus()
@@ -92,7 +92,7 @@ async def goCharge(target: Target):
 
     robot.status = 'charge'
     robot.target = target
-    robot.startFlag = True
+    robot.isAvailable = False
 
     try:
         # AMR
@@ -119,7 +119,7 @@ async def goCharge(target: Target):
             await asyncio.sleep(2)
     except amr.ConnectionError:
         logger.error('AMR Connection ERROR')
-        robot.startFlag = False
+        robot.isAvailable = True
         return
 
     # ARM
@@ -153,10 +153,10 @@ async def goCharge(target: Target):
     
     except arm.ConnectionERROR:
         logger.error('Robot Arm Connection ERROR')
-        robot.startFlag = False
+        robot.isAvailable = True
         return
 
-    robot.startFlag = False
+    robot.isAvailable = True
 
     logger.info('End of Charge Task')
 
@@ -169,7 +169,7 @@ async def goReturn():
 
     robot.status = 'return'
     robot.target = None
-    robot.startFlag = True
+    robot.isAvailable = False
 
     # ARM
     try:
@@ -179,7 +179,7 @@ async def goReturn():
 
     except arm.ConnectionERROR:
         logger.error('Robot Arm Connection ERROR')
-        robot.startFlag = False
+        robot.isAvailable = True
         return
 
     # AMR
@@ -202,11 +202,11 @@ async def goReturn():
             await asyncio.sleep(2)
     except amr.ConnectionError:
         print('AMR Connection ERROR')
-        robot.startFlag = False
+        robot.isAvailable = True
         return
 
     robot.status = 'idle'
-    robot.startFlag = False
+    robot.isAvailable = True
 
     logger.info('End of Return Task')
 
@@ -232,7 +232,7 @@ app.add_middleware(
 @app.post('/action/charge')
 async def chargeTarget(target: Target):
     if robot.status == 'idle':
-        if robot.startFlag == False:
+        if robot.isAvailable == True:
             robot.target = target
             asyncio.create_task(goCharge(robot.target))
             return {'message': 'True'}
@@ -245,7 +245,7 @@ async def chargeTarget(target: Target):
 @app.post('/action/return')
 async def returnToBase():
     if robot.status == 'charge':
-        if robot.startFlag == False:
+        if robot.isAvailable == True:
             print('start of return')
             asyncio.create_task(goReturn())
             return {'message': 'True'}
@@ -255,9 +255,9 @@ async def returnToBase():
     return {'message': 'False'}
 
 
-@app.get('/action/status')
+@app.get('/info/status')
 async def returnStatus():
-    return {'amrStatus': amr.currentStatus, 'robotStatus': json.dumps(robot.__dict__)}
+    return {'amrStatus': amr.currentStatus(), 'robotStatus': json.dumps(robot.__dict__)}
 
 
 @app.post('/test')
