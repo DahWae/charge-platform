@@ -13,12 +13,7 @@ const routes = [
     { path: '/manager', name: 'Manager', component: Manager },
     { path: '/register', name: 'Register', component: Register },
     { path: '/search', name: 'Search', component: Search },
-    {
-        path: '/result:plate', name: 'Result', component: Result,
-        children: [
-            { path: '', name: 'ResultView', component: ResultView }
-        ]
-    },
+    { path: '/result', name: 'Result', component: Result },
 ]
 
 const router = createRouter({

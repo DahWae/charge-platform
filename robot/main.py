@@ -1,9 +1,10 @@
 # system package
-import json
+import jsons
 import multiprocessing
 import asyncio
 import cv2
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from sse_starlette.sse import EventSourceResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import datetime
@@ -22,6 +23,7 @@ logger.remove()
 logger.add(sys.stdout, colorize=True,
            format="<green>{time:HH:mm:ss}</green> | {level} | <level>{message}</level>")
 
+
 class Target(BaseModel):
     space: str
     leaveTime: datetime.datetime = None
@@ -32,7 +34,7 @@ class Target(BaseModel):
 class RobotStatus:
     target: Target = None
     status: str = 'idle'
-    isAvailable: bool = False
+    isAvailable: bool = True
 
 
 robot = RobotStatus()
@@ -90,7 +92,7 @@ async def goCharge(target: Target):
 
     logger.info('Start of Charge Task')
 
-    robot.status = 'charge'
+    robot.status = 'arrive'
     robot.target = target
     robot.isAvailable = False
 
@@ -150,12 +152,13 @@ async def goCharge(target: Target):
                 await asyncio.sleep(0.5)
 
         await arm.setPose(client=c, pose='plug')
-    
+
     except arm.ConnectionERROR:
         logger.error('Robot Arm Connection ERROR')
         robot.isAvailable = True
         return
 
+    robot.status = 'charge'
     robot.isAvailable = True
 
     logger.info('End of Charge Task')
@@ -201,7 +204,7 @@ async def goReturn():
         while(amr.magneticState()):
             await asyncio.sleep(2)
     except amr.ConnectionError:
-        print('AMR Connection ERROR')
+        logger.error('AMR Connection ERROR')
         robot.isAvailable = True
         return
 
@@ -246,7 +249,6 @@ async def chargeTarget(target: Target):
 async def returnToBase():
     if robot.status == 'charge':
         if robot.isAvailable == True:
-            print('start of return')
             asyncio.create_task(goReturn())
             return {'message': 'True'}
         logger.error('Robot in Use ERROR!!')
@@ -255,9 +257,59 @@ async def returnToBase():
     return {'message': 'False'}
 
 
+@app.get('/info/currentXY')  # deprecated
+async def returnXY(request: Request):
+    '''
+    def newMessage():
+        try:
+            ret = amr.currentXY()
+            x = ret['x']
+            y = ret['y']
+            res=False
+            if newMessage.lastX != x:
+                res= True
+            elif newMessage.lastY != y:
+                res =  True
+
+            newMessage.lastX = x
+            newMessage.lastY = y
+
+            return res
+
+        except AttributeError:
+            newMessage.lastX = 0
+            newMessage.lastY = 0
+    '''
+
+    async def eventGenerator():
+        while True:
+            if await request.is_disconnected():
+                break  # stop streaming when disconnected
+
+            ret = amr.currentXY()
+
+            yield {
+                "event": "new_message",  # idk how to set this
+                "id": "message_id",
+                "retry": 15000,
+                "data": {
+                }
+            }
+
+            await asyncio.sleep(2)  # stream delay
+    return EventSourceResponse(eventGenerator())
+
+
 @app.get('/info/status')
 async def returnStatus():
-    return {'amrStatus': amr.currentStatus(), 'robotStatus': json.dumps(robot.__dict__)}
+    data = {
+        'position': amr.currentXY(),
+        'robotStatus': jsons.dump(robot),
+        'amrStatus': amr.currentStatus(),
+        'batteryStatus': amr.battery(),
+    }
+
+    return data
 
 
 @app.post('/test')
@@ -286,14 +338,13 @@ if __name__ == '__main__':
         amr.annulment()
         amr.stopMagnetic()
     except amr.ConnectionError:
-        print('AMR Connection ERROR')
+        logger.error('AMR Connection ERROR')
 
-    try:
-        c = arm.openClient()
+    # try:
+    #     c = arm.openClient()
+    #     asyncio.run(arm.setPose(client=c, pose='default'))
 
-        asyncio.run(arm.setPose(client=c, pose='default'))
-
-    except arm.ConnectionERROR:
-        logger.error('Robot Arm Connection ERROR')
+    # except arm.ConnectionERROR:
+    #     logger.error('Robot Arm Connection ERROR')
 
     uvicorn.run(app, host='0.0.0.0', port=8000)

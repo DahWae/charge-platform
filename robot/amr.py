@@ -4,7 +4,7 @@
 import requests
 from requests.exceptions import Timeout
 
-url = 'http://10.42.0.1'  # TODO: change the url
+url = 'http://10.42.0.1'
 
 class ConnectionError(Exception):
     # raise when connection timeout
@@ -170,7 +170,7 @@ def battery():
     path = url + ':6010/amrHardware/batter'
     try:
         r = requests.get(url=path, timeout=10)
-        return r
+        return r.json()
     except Timeout:
         raise ConnectionError
 

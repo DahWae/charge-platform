@@ -1,4 +1,5 @@
 import datetime
+import json
 import sys
 import asyncio
 import sqlite3 as sl
@@ -10,6 +11,8 @@ from sse_starlette.sse import EventSourceResponse
 from loguru import logger
 import requests
 from requests.exceptions import Timeout
+from types import SimpleNamespace
+from munch import DefaultMunch
 
 
 class SubmittForm(BaseModel):
@@ -21,6 +24,9 @@ class SubmittForm(BaseModel):
     Time: datetime.time = None
 
 
+# TODO: change to list of robots' URL if multiple robots
+robotUrl = 'http://192.168.100.3'
+
 logger.remove()
 logger.add(sys.stdout, colorize=True,
            format="<green>{time:HH:mm:ss}</green> | {level} | <level>{message}</level>")
@@ -28,9 +34,12 @@ logger.add(sys.stdout, colorize=True,
 conn = sl.connect('test.db')
 cur = conn.cursor()
 conn.execute('''DROP TABLE if exists Vehicle ''')
-conn.execute('''CREATE TABLE if not exists Vehicle (ts, plate, parkID, power, pickTime, status)''')
+conn.execute(
+    '''CREATE TABLE if not exists Vehicle (ts, plate, parkID, power, pickTime, percentage, status)''')
+conn.execute('''DROP TABLE if exists Robot ''')
+conn.execute(
+    '''CREATE TABLE if not exists Robot (x, y, robotTarget, robotStatus, amrStatus, amrBattery, amrTemp)''')
 
-robotUrl = 'http://192.168.100.2' # TODO: change to list of robots' URL if multiple robots
 
 app = FastAPI()
 
@@ -42,17 +51,40 @@ app.add_middleware(
 
 
 async def mainTask():
+
+    msg = getRobotStatus()
+    bot = DefaultMunch.fromDict(msg)
+    cur.execute('''INSERT INTO Robot VALUES(?,?,?,?,?,?,?)''', (bot.position.x, bot.position.y, bot.robotStatus.target,
+                                                                bot.robotStatus.status, bot.amrStatus, bot.batteryStatus.power, bot.batteryStatus.temp))
+    conn.commit()
+
     while True:
+
+        msg = getRobotStatus()
+        bot = DefaultMunch.fromDict(msg)
+        cur.execute('''UPDATE Robot SET x = ?,
+                                        y = ?,
+                                        robotTarget = ?,
+                                        robotStatus = ?,
+                                        amrStatus = ?,
+                                        amrBattery = ?,
+                                        amrTemp = ?''',
+                    (bot.position.x, bot.position.y, bot.robotStatus.target,
+                     bot.robotStatus.status, bot.amrStatus, bot.batteryStatus.power, bot.batteryStatus.temp))
+        conn.commit()
+
         cur.execute('''SELECT * from Vehicle''')
         records = cur.fetchall()
         for row in records:
-            print(row)
-            if row[5] == 'waiting': # ts, plate, parkID, power, pickTime, status
+            if row[5] == 'waiting':  # ts, plate, parkID, power, pickTime, status
                 logger.info('found task waiting')
-                # if getRobotStatus()['robotStatus']['status'] == 'idle':
-                #     setRobotCharge(row[2])
+                if bot.robotStatus.status == 'idle':
+                    setRobotCharge(row[2])
+                    cur.execute('''UPDATE Vehicle SET status = ?
+                    WHERE ts = ?''', ('charging', row[0]))
 
-        await asyncio.sleep(10) # check every 10 sec
+        await asyncio.sleep(2)  # check every 10 sec
+
 
 def getRobotStatus():
     path = robotUrl + ':8000/info/status'
@@ -61,6 +93,7 @@ def getRobotStatus():
         return r.json()
     except Timeout:
         raise ConnectionError
+
 
 def setRobotCharge(parkID: str):
     path = robotUrl + ':8000/action/charge'
@@ -73,6 +106,17 @@ def setRobotCharge(parkID: str):
         raise ConnectionError
 
     return
+
+
+def setRobotReturn():
+    path = robotUrl + ':8000/action/return'
+    try:
+        r = requests.post(url=path, timeout=10)
+    except Timeout:
+        raise ConnectionError
+
+    return
+
 
 @app.get('/stream')
 async def taskManager(request: Request):
@@ -87,7 +131,7 @@ async def taskManager(request: Request):
 
             if newMessage():
                 yield {
-                    "event": "new_message",
+                    "event": "new_message",  # idk how to set this
                     "id": "message_id",
                     "retry": 15000,
                     "data": {
@@ -102,6 +146,40 @@ async def taskManager(request: Request):
     return EventSourceResponse(eventGenerator())
 
 
+@app.get('/robot')
+async def returnRobot(request: Request):
+    async def eventGenerator():
+        while True:
+            if await request.is_disconnected():
+                break  # stop streaming when disconnected
+
+            cur.execute('''SELECT * from Robot''')
+            msg = cur.fetchall()  # x, y, robotTarget, robotStatus, amrStatus, amrBattery, amrTemp
+
+            robots = msg[0]
+            yield {
+                "event": "new_message",  # idk how to set this
+                "id": "message_id",
+                "retry": 15000,
+                "data": {
+                    'position': {
+                        'x': robots[0],
+                        'y': robots[1]
+                    },
+                    'robotStatus': {
+                        'robotTarget': robots[3],
+                        'robotStatus': robots[4],
+                        'amrStatus': robots[5],
+                        'amrBattery': robots[6],
+                        'amrTemp': robots[7]
+                    }
+                }
+            }
+
+            await asyncio.sleep(2)  # stream delay
+    return EventSourceResponse(eventGenerator())
+
+
 @app.post('/submit')
 async def submit(form: SubmittForm):
     logger.info('recieved submission')
@@ -109,24 +187,11 @@ async def submit(form: SubmittForm):
     now = datetime.datetime.now()
     form.Power /= 10
     form.ts = datetime.datetime.timestamp(now)
-    print(form)
+    # print(form)
 
-    cur.execute('INSERT INTO Vehicle VALUES(?,?,?,?,?,?)', (form.ts,
-                form.Plate, form.ParkID, form.Power, form.PickTime, 'waiting'))
+    cur.execute('INSERT INTO Vehicle VALUES(?,?,?,?,?,?,?)', (form.ts,
+                form.Plate, form.ParkID, form.Power, form.PickTime, 0, 'waiting'))
     conn.commit()
-
-    # path = robotUrl + ':8000/action/charge'
-    # json = {
-    #     'space': form.ParkID,
-    #     'leaveTime': form.PickTime,
-    #     'tStamp': form.ts,
-    #     'power': form.Power,
-    #     }
-
-    # try:
-    #     r = requests.post(url=path, json=json, timeout=10)
-    # except Timeout:
-    #     raise ConnectionError
 
     return
 
@@ -134,6 +199,7 @@ async def submit(form: SubmittForm):
 @app.get('/')
 async def root():
     return {"message": "Hello World"}
+
 
 @app.on_event('startup')
 async def startupEvent():

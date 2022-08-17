@@ -17,7 +17,7 @@ const plate = ref('');
 
 const onSubmit = (values) => {
     console.log('submit', values);
-    router.push({ name: 'Result', params: { plate } });
+    router.push({ name: 'Result', query: {plate: plate.value} });
 };
 
 </script>
