@@ -25,7 +25,8 @@ class SubmittForm(BaseModel):
 
 
 # TODO: change to list of robots' URL if multiple robots
-robotUrl = 'http://192.168.100.3'
+# robotUrl = 'http://192.168.100.3'
+robotUrl = 'http://localhost'
 
 logger.remove()
 logger.add(sys.stdout, colorize=True,
@@ -135,14 +136,14 @@ async def taskManager(request: Request):
                     "id": "message_id",
                     "retry": 15000,
                     "data": {
-                        'data1': num,
-                        'data2': 'Hello'
+                        "data1": num,
+                        "data2": "Hello"
                     }
                 }
                 logger.info(num)
 
             num += 1
-            await asyncio.sleep(1)  # stream delay
+            await asyncio.sleep(2)  # stream delay
     return EventSourceResponse(eventGenerator())
 
 
@@ -156,28 +157,33 @@ async def returnRobot(request: Request):
             cur.execute('''SELECT * from Robot''')
             msg = cur.fetchall()  # x, y, robotTarget, robotStatus, amrStatus, amrBattery, amrTemp
 
-            robots = msg[0]
-            yield {
-                "event": "new_message",  # idk how to set this
-                "id": "message_id",
-                "retry": 15000,
-                "data": {
+            allRobots = []
+            for robots in msg:
+                temp = [{
                     'position': {
                         'x': robots[0],
                         'y': robots[1]
                     },
-                    'robotStatus': {
-                        'robotTarget': robots[3],
-                        'robotStatus': robots[4],
-                        'amrStatus': robots[5],
-                        'amrBattery': robots[6],
-                        'amrTemp': robots[7]
+                    'robot': {
+                        'robotTarget': robots[2],
+                        'robotStatus': robots[3],
+                        'amrStatus': robots[4],
+                        'amrBattery': robots[5],
+                        'amrTemp': robots[6]
                     }
-                }
+                }]
+                allRobots.append(temp)
+
+            yield {
+                "event": "new_message",  # idk how to set this
+                "id": "message_id",
+                "retry": 15000,
+                "data": jsons.dump(allRobots)
             }
 
             await asyncio.sleep(2)  # stream delay
     return EventSourceResponse(eventGenerator())
+
 
 @app.get('/vehicle')
 async def returnRobot(request: Request):
@@ -188,21 +194,29 @@ async def returnRobot(request: Request):
 
             cur.execute('''SELECT * from Vehicle''')
             msg = cur.fetchall()  # ts, plate, parkID, power, pickTime, percentage, status
-        
-            allVehicles = []
+
+            allTasks = []
             for task in msg:
-                allVehicles.append(task)
+                temp = [{
+                    'ts': task[0],
+                    'plate': task[1],
+                    'parkID': task[2],
+                    'power': task[3],
+                    'pickTime': task[4],
+                    'percentage': task[5],
+                    'status': task[6],
+                }]
+                allTasks.append(temp)
             yield {
                 "event": "new_message",  # idk how to set this
                 "id": "message_id",
                 "retry": 15000,
-                "data": {
-                    'allTasks': jsons.dump(allVehicles)
-                    }
-                }
+                "data": jsons.dump(allTasks)
+            }
 
             await asyncio.sleep(2)  # stream delay
     return EventSourceResponse(eventGenerator())
+
 
 @app.post('/submit')
 async def submit(form: SubmittForm):

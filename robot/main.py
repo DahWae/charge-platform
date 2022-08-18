@@ -32,7 +32,7 @@ class Target(BaseModel):
 
 
 class RobotStatus:
-    target: Target = None
+    target: Target = ''
     status: str = 'idle'
     isAvailable: bool = True
 
@@ -340,11 +340,11 @@ if __name__ == '__main__':
     except amr.ConnectionError:
         logger.error('AMR Connection ERROR')
 
-    try:
-        c = arm.openClient()
-        asyncio.run(arm.setPose(client=c, pose='default'))
+    # try:
+    #     c = arm.openClient()
+    #     asyncio.run(arm.setPose(client=c, pose='default'))
 
-    except arm.ConnectionERROR:
-        logger.error('Robot Arm Connection ERROR')
+    # except arm.ConnectionERROR:
+    #     logger.error('Robot Arm Connection ERROR')
 
     uvicorn.run(app, host='0.0.0.0', port=8000)

@@ -45,7 +45,7 @@ const onReturn = () => {
 
     <div class="gap-30" />
     <Row justify="center">
-        <img class="logo" alt="NTNU logo" src="@/assets/logo.png" @click="$router.push('/about')" />
+        <img class="logo" alt="NTNU logo" src="@/assets/logo.png" @click="$router.push('/manager')" />
     </Row>
     <Row justify="center">
         <h2>
