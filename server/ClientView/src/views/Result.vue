@@ -7,6 +7,8 @@ import {
     Circle,
 } from 'vant'
 
+var source = new EventSource(serverUrl + ':8001/')
+
 var currentRate = ref(30);
 var text = computed(() => currentRate.value.toFixed(0) + '%')
 

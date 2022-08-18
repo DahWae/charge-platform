@@ -1,5 +1,5 @@
 import datetime
-import json
+import jsons
 import sys
 import asyncio
 import sqlite3 as sl
@@ -179,14 +179,36 @@ async def returnRobot(request: Request):
             await asyncio.sleep(2)  # stream delay
     return EventSourceResponse(eventGenerator())
 
+@app.get('/vehicle')
+async def returnRobot(request: Request):
+    async def eventGenerator():
+        while True:
+            if await request.is_disconnected():
+                break  # stop streaming when disconnected
+
+            cur.execute('''SELECT * from Vehicle''')
+            msg = cur.fetchall()  # ts, plate, parkID, power, pickTime, percentage, status
+        
+            allVehicles = []
+            for task in msg:
+                allVehicles.append(task)
+            yield {
+                "event": "new_message",  # idk how to set this
+                "id": "message_id",
+                "retry": 15000,
+                "data": {
+                    'allTasks': jsons.dump(allVehicles)
+                    }
+                }
+
+            await asyncio.sleep(2)  # stream delay
+    return EventSourceResponse(eventGenerator())
 
 @app.post('/submit')
 async def submit(form: SubmittForm):
     logger.info('recieved submission')
-    form.Time = datetime.time()
-    now = datetime.datetime.now()
     form.Power /= 10
-    form.ts = datetime.datetime.timestamp(now)
+    form.ts = datetime.datetime.now().strftime("%H:%M:%S")
     # print(form)
 
     cur.execute('INSERT INTO Vehicle VALUES(?,?,?,?,?,?,?)', (form.ts,
