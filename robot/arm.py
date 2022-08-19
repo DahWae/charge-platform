@@ -11,10 +11,13 @@ class ConnectionERROR(Exception):
 
 
 def openClient():
-    c = ModbusClient(host='192.168.100.4', port=502, unit_id=1,
-                     auto_open=True, timeout=10)  # 192.168.1.116為UR的IP位置
-    # c = ModbusClient(host='192.168.0.28', port=502,unit_id=1,auto_open=True)    #192.168.1.116為UR的IP位置
+    try:
+        c = ModbusClient(host='192.168.100.4', port=502, unit_id=1,
+                        auto_open=True, timeout=10)  # 192.168.1.116為UR的IP位置
+        # c = ModbusClient(host='192.168.0.28', port=502,unit_id=1,auto_open=True)    #192.168.1.116為UR的IP位置
 
+    except TimeoutError:
+        raise ConnectionERROR
     return c
 
 

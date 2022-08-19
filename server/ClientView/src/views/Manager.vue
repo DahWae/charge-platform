@@ -33,7 +33,6 @@ onBeforeUnmount(() => {
 function newRobotMessage(e) {
     const elName = ["x", "y", "target", "robotStatus", "amrBattery", "amrTemperature"]
 
-    console.log(e.data)
     var data = JSON5.parse(e.data)
 
     // var newEl = document.createElement('div')
@@ -84,7 +83,6 @@ function newvehicleMessage(e) {
 
     var data = JSON5.parse(e.data)
 
-    console.log(data)
     if (data == null)
         return
 
@@ -109,7 +107,7 @@ function newvehicleMessage(e) {
         document.getElementById(elementID).innerText = data[i].pickTime
 
         elementID = vehicleID + "-" + elName[5];
-        document.getElementById(elementID).innerText = data[i].percentage.toFixed(0)
+        document.getElementById(elementID).innerText = data[i].percentage.toFixed(1)
 
         elementID = vehicleID + "-" + elName[6];
         document.getElementById(elementID).innerText = data[i].status
@@ -206,12 +204,14 @@ function deleteRobot(num) {
     for (var i = num; document.getElementById("robot-" + i) != null; i++) {
         document.getElementById("robot-" + i).remove();
     }
+    robotCount = num;
 }
 
 function deleteVehicle(num) {
     for (var i = num; document.getElementById("vehicle-" + i) != null; i++) {
         document.getElementById("vehicle-" + i).remove();
     }
+    vehicleCount = num;
 }
 
 window.onload = function () {

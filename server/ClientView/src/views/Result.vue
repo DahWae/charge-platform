@@ -12,7 +12,7 @@ const plate = window.location.search.substring(7)
 const source = new EventSource(serverUrl + '/search/' + plate)
 
 var currentRate = ref(0);
-var text = computed(() => currentRate.value.toFixed(0) + '%')
+var text = ref(currentRate.value.toFixed(1) + '%')
 
 onMounted(() => {
     source.addEventListener("new_message", newMessage);
@@ -24,11 +24,16 @@ onBeforeUnmount(() => {
 
 function newMessage(e) {
     var data = JSON5.parse(e.data)
+
     if (data.percentage == -1)
         currentRate.value = NaN
 
     else
         currentRate.value = data.percentage;
+        
+    text.value = currentRate.value.toFixed(1) + '%'
+    console.log(currentRate.value)
+    console.log(text.value)
 }
 
 </script>

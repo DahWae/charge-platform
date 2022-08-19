@@ -25,19 +25,20 @@ logger.add(sys.stdout, colorize=True,
 
 
 class Target(BaseModel):
-    space: str
+    space: str = "None"
     leaveTime: datetime.datetime = None
     tStamp: int = None
     power: int = None
 
 
 class RobotStatus:
-    target: Target = ''
+    target: Target = {"space": "None"}
     status: str = 'idle'
     isAvailable: bool = True
 
 
 robot = RobotStatus()
+print(jsons.dump(robot))
 
 
 def subP(coords, inView):
@@ -171,7 +172,6 @@ async def goReturn():
     logger.info('Start of Return Task')
 
     robot.status = 'return'
-    robot.target = None
     robot.isAvailable = False
 
     # ARM
@@ -307,6 +307,12 @@ async def returnStatus():
         'robotStatus': jsons.dump(robot),
         'amrStatus': amr.currentStatus(),
         'batteryStatus': amr.battery(),
+
+        # test data
+        # 'position': {"x": 0, "y": 0},
+        # 'robotStatus': jsons.dump(robot),
+        # 'amrStatus': "no task",
+        # 'batteryStatus': {"power": 87, "temp": 20},
     }
 
     return data
@@ -332,7 +338,7 @@ async def root():
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
-    multiprocessing.Process(target=subP, args=(coords, inView)).start()
+    # multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
     try:
         amr.annulment()
@@ -340,11 +346,11 @@ if __name__ == '__main__':
     except amr.ConnectionError:
         logger.error('AMR Connection ERROR')
 
-    # try:
-    #     c = arm.openClient()
-    #     asyncio.run(arm.setPose(client=c, pose='default'))
+    try:
+        c = arm.openClient()
+        asyncio.run(arm.setPose(client=c, pose='default'))
 
-    # except arm.ConnectionERROR:
-    #     logger.error('Robot Arm Connection ERROR')
+    except arm.ConnectionERROR:
+        logger.error('Robot Arm Connection ERROR')
 
     uvicorn.run(app, host='0.0.0.0', port=8000)

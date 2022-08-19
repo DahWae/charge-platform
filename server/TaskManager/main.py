@@ -15,6 +15,10 @@ from types import SimpleNamespace
 from munch import DefaultMunch
 
 
+class ConnectionError(Exception):
+    # raise when connection timeout
+    pass
+
 class SubmittForm(BaseModel):
     ts: str = None
     Plate: str
@@ -59,7 +63,7 @@ async def mainTask():
 
     msg = getRobotStatus()
     bot = DefaultMunch.fromDict(msg)
-    cur.execute('''INSERT INTO Robot VALUES(?,?,?,?,?,?,?)''', (bot.position.x, bot.position.y, bot.robotStatus.target,
+    cur.execute('''INSERT INTO Robot VALUES(?,?,?,?,?,?,?)''', (bot.position.x, bot.position.y, bot.robotStatus.target.space,
                                                                 bot.robotStatus.status, bot.amrStatus, bot.batteryStatus.power, bot.batteryStatus.temp))
     conn.commit()
 
@@ -74,7 +78,7 @@ async def mainTask():
                                         amrStatus = ?,
                                         amrBattery = ?,
                                         amrTemp = ?''',
-                    (bot.position.x, bot.position.y, bot.robotStatus.target,
+                    (bot.position.x, bot.position.y, bot.robotStatus.target.space,
                      bot.robotStatus.status, bot.amrStatus, bot.batteryStatus.power, bot.batteryStatus.temp))
         conn.commit()
 
@@ -88,7 +92,13 @@ async def mainTask():
                     cur.execute('''UPDATE Vehicle SET status = ?
                     WHERE ts = ?''', ('charging', row[0]))
             elif row[6] == 'charging':
-                cur.execute('''UPDATE Vehicle SET percentage = ? WHERE ts = ?''', (row[5], row[0]))
+                if row[5] > 85:  # set robot return
+                    setRobotReturn()
+                    cur.execute(
+                        '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('return', row[0]))
+                else:
+                    cur.execute(
+                        '''UPDATE Vehicle SET percentage = ? WHERE ts = ?''', (row[5]+0.3, row[0]))
 
         await asyncio.sleep(2)  # check every 10 sec
 
