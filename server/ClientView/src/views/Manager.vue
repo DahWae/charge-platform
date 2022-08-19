@@ -33,6 +33,7 @@ onBeforeUnmount(() => {
 function newRobotMessage(e) {
     const elName = ["x", "y", "target", "robotStatus", "amrBattery", "amrTemperature"]
 
+    console.log(e.data)
     var data = JSON5.parse(e.data)
 
     // var newEl = document.createElement('div')

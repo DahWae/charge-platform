@@ -9,6 +9,7 @@ import {
 
 import axios from 'axios'
 
+/*
 const onCharge = () => {
     axios.post(robotUrl + '/action/charge',
         {
@@ -39,6 +40,7 @@ const onReturn = () => {
             Toast(response.data)
         })
 };
+*/
 </script>
 
 <template>
@@ -69,7 +71,7 @@ const onReturn = () => {
         </Col>
     </Row>
 
-    <Row justify="center">
+    <!-- <Row justify="center">
         <Col span="10">
         <Button round block type="primary" @click="onCharge">
             Charge
@@ -83,7 +85,7 @@ const onReturn = () => {
             Return
         </Button>
         </Col>
-    </Row>
+    </Row> -->
 </template>
 
 <style>
