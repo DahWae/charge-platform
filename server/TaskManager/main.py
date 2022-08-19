@@ -16,12 +16,16 @@ from munch import DefaultMunch
 
 
 class SubmittForm(BaseModel):
-    ts: float = None
+    ts: str = None
     Plate: str
     ParkID: str
     Power: float
     PickTime: str
     Time: datetime.time = None
+
+
+class DeleteForm(BaseModel):
+    ts: str
 
 
 # TODO: change to list of robots' URL if multiple robots
@@ -77,12 +81,14 @@ async def mainTask():
         cur.execute('''SELECT * from Vehicle''')
         records = cur.fetchall()
         for row in records:
-            if row[5] == 'waiting':  # ts, plate, parkID, power, pickTime, status
+            if row[6] == 'waiting':  # ts, plate, parkID, power, pickTime, percentage, status
                 logger.info('found task waiting')
                 if bot.robotStatus.status == 'idle':
                     setRobotCharge(row[2])
                     cur.execute('''UPDATE Vehicle SET status = ?
                     WHERE ts = ?''', ('charging', row[0]))
+            elif row[6] == 'charging':
+                cur.execute('''UPDATE Vehicle SET percentage = ? WHERE ts = ?''', (row[5], row[0]))
 
         await asyncio.sleep(2)  # check every 10 sec
 
@@ -159,7 +165,7 @@ async def returnRobot(request: Request):
 
             allRobots = []
             for robots in msg:
-                temp = [{
+                temp = {
                     'position': {
                         'x': robots[0],
                         'y': robots[1]
@@ -171,7 +177,7 @@ async def returnRobot(request: Request):
                         'amrBattery': robots[5],
                         'amrTemp': robots[6]
                     }
-                }]
+                }
                 allRobots.append(temp)
 
             yield {
@@ -197,7 +203,7 @@ async def returnRobot(request: Request):
 
             allTasks = []
             for task in msg:
-                temp = [{
+                temp = {
                     'ts': task[0],
                     'plate': task[1],
                     'parkID': task[2],
@@ -205,7 +211,7 @@ async def returnRobot(request: Request):
                     'pickTime': task[4],
                     'percentage': task[5],
                     'status': task[6],
-                }]
+                }
                 allTasks.append(temp)
             yield {
                 "event": "new_message",  # idk how to set this
@@ -218,6 +224,35 @@ async def returnRobot(request: Request):
     return EventSourceResponse(eventGenerator())
 
 
+@app.get('/search/{plate}')
+async def searchResult(request: Request, plate):
+    async def eventGenerator():
+        while True:
+            if await request.is_disconnected():
+                break  # stop streaming when disconnected
+
+            cur.execute('''SELECT * FROM Vehicle WHERE plate = ?''', (plate, ))
+            msg = cur.fetchall()
+
+            if msg != []:
+                data = {
+                    'percentage': msg[0][5],
+                }
+            else:
+                data = {
+                    'percentage': -1,
+                }
+
+            yield {
+                "event": "new_message",  # idk how to set this
+                "id": "message_id",
+                "retry": 15000,
+                "data": data
+            }
+            await asyncio.sleep(5)  # stream delay
+    return EventSourceResponse(eventGenerator())
+
+
 @app.post('/submit')
 async def submit(form: SubmittForm):
     logger.info('recieved submission')
@@ -227,6 +262,17 @@ async def submit(form: SubmittForm):
 
     cur.execute('INSERT INTO Vehicle VALUES(?,?,?,?,?,?,?)', (form.ts,
                 form.Plate, form.ParkID, form.Power, form.PickTime, 0, 'waiting'))
+    conn.commit()
+
+    return
+
+
+@app.post('/delete')
+async def submit(form: DeleteForm):
+    print(form.ts)
+    logger.info('recieved deletion')
+
+    cur.execute('''DELETE FROM Vehicle WHERE ts = ?''', (form.ts,))
     conn.commit()
 
     return

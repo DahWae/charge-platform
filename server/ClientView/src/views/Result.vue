@@ -1,16 +1,35 @@
 <script setup>
 
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import JSON5 from 'json5'
 import {
     Row,
     Col,
     Circle,
 } from 'vant'
 
-var source = new EventSource(serverUrl + ':8001/')
+const plate = window.location.search.substring(7)
+const source = new EventSource(serverUrl + '/search/' + plate)
 
-var currentRate = ref(30);
+var currentRate = ref(0);
 var text = computed(() => currentRate.value.toFixed(0) + '%')
+
+onMounted(() => {
+    source.addEventListener("new_message", newMessage);
+})
+
+onBeforeUnmount(() => {
+    source.removeEventListener("new_message", newMessage)
+})
+
+function newMessage(e) {
+    var data = JSON5.parse(e.data)
+    if (data.percentage == -1)
+        currentRate.value = NaN
+
+    else
+        currentRate.value = data.percentage;
+}
 
 </script>
 
@@ -18,7 +37,7 @@ var text = computed(() => currentRate.value.toFixed(0) + '%')
 <template>
     <Row justify="center">
         <Col span="24">
-            <h1>{{ $route.query.plate }}</h1>
+        <h1>{{ $route.query.plate }}</h1>
         </Col>
     </Row>
 
@@ -26,13 +45,14 @@ var text = computed(() => currentRate.value.toFixed(0) + '%')
 
     <Row justify="center">
         <Col span="24">
-        <Circle v-model:current-rate="currentRate" :rate=currentRate :speed="100" :text=text :size="180" :stroke-width="80"  />
+        <Circle v-model:current-rate="currentRate" :rate=currentRate :speed="100" :text=text :size="180"
+            :stroke-width="80" />
         </Col>
     </Row>
 </template>
 
 <style>
-:root{
+:root {
     --van-circle-text-font-size: 35px;
 }
 
@@ -44,5 +64,4 @@ var text = computed(() => currentRate.value.toFixed(0) + '%')
     width: 100%;
     height: 30px;
 }
-
 </style>
