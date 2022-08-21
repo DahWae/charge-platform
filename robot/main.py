@@ -31,14 +31,25 @@ class Target(BaseModel):
     power: int = None
 
 
+class RobotTarget:
+    def __init__(self):
+        self.space = "None"
+        self.leaveTime = None
+        self.tStamp = None
+        self.power = None
+
 class RobotStatus:
-    target: Target = {"space": "None"}
-    status: str = 'idle'
-    isAvailable: bool = True
+    # target: Target = Target()
+    # status: str = 'idle'
+    # isAvailable: bool = True
+    def __init__(self):
+        self.target = RobotTarget()
+        self.status = 'idle'
+        self.isAvailable = True
+
 
 
 robot = RobotStatus()
-print(jsons.dump(robot))
 
 
 def subP(coords, inView):
@@ -89,75 +100,76 @@ def printPosition():
     return
 
 
-async def goCharge(target: Target):
+async def goCharge():
 
     logger.info('Start of Charge Task')
 
     robot.status = 'arrive'
-    robot.target = target
     robot.isAvailable = False
 
-    try:
-        # AMR
-        allPoint = amr.currentAllGoalPoint()
-        # match target.space and GoalPoint coordination
-        matchedPoint = contains(allPoint, lambda x: x['name'] == target.space)
-        if matchedPoint is None:
-            print('ERR, Point not found')
-            return
+    await asyncio.sleep(30)
 
-        amr.moveToGoal(matchedPoint)
-        await asyncio.sleep(1)
-        while(amr.currentStatus() == 'running'):
-            await asyncio.sleep(2)
+    # try:
+    #     # AMR
+    #     allPoint = amr.currentAllGoalPoint()
+    #     # match target.space and GoalPoint coordination
+    #     matchedPoint = contains(allPoint, lambda x: x['name'] == target.space)
+    #     if matchedPoint is None:
+    #         print('ERR, Point not found')
+    #         return
 
-        print(amr.startMagneticFind())
-        await asyncio.sleep(1)
-        while(amr.magneticState() == 1):
-            await asyncio.sleep(2)
+    #     amr.moveToGoal(matchedPoint)
+    #     await asyncio.sleep(1)
+    #     while(amr.currentStatus() == 'running'):
+    #         await asyncio.sleep(2)
 
-        print(amr.startMagneticGoal())
-        await asyncio.sleep(1)
-        while(amr.magneticState() == 1):
-            await asyncio.sleep(2)
-    except amr.ConnectionError:
-        logger.error('AMR Connection ERROR')
-        robot.isAvailable = True
-        return
+    #     print(amr.startMagneticFind())
+    #     await asyncio.sleep(1)
+    #     while(amr.magneticState() == 1):
+    #         await asyncio.sleep(2)
 
-    # ARM
-    try:
-        await arm.setPose(client=c, pose='prep')
+    #     print(amr.startMagneticGoal())
+    #     await asyncio.sleep(1)
+    #     while(amr.magneticState() == 1):
+    #         await asyncio.sleep(2)
+    # except amr.ConnectionError:
+    #     logger.error('AMR Connection ERROR')
+    #     robot.isAvailable = True
+    #     return
 
-        await asyncio.sleep(3)
+    # # ARM
+    # try:
+    #     await arm.setPose(client=c, pose='prep')
 
-        onTarget = None
-        aiming = True
+    #     await asyncio.sleep(3)
 
-        while aiming:
-            aiming = False
-            for _ in range(20):
-                if inView.value == 1:
+    #     onTarget = None
+    #     aiming = True
 
-                    onTarget = camera.onTarget(coords)
-                    if onTarget:
-                        await arm.setPose(client=c, pose='ready', coord=coords)
-                    else:
-                        aiming = True
-                        await arm.setPose(client=c, pose='aim', coord=coords)
-                    break
+    #     while aiming:
+    #         aiming = False
+    #         for _ in range(20):
+    #             if inView.value == 1:
 
-                else:
-                    print('no marker found')
+    #                 onTarget = camera.onTarget(coords)
+    #                 if onTarget:
+    #                     await arm.setPose(client=c, pose='ready', coord=coords)
+    #                 else:
+    #                     aiming = True
+    #                     await arm.setPose(client=c, pose='aim', coord=coords)
+    #                 break
 
-                await asyncio.sleep(0.5)
+    #             else:
+    #                 print('no marker found')
 
-        await arm.setPose(client=c, pose='plug')
+    #             await asyncio.sleep(0.5)
 
-    except arm.ConnectionERROR:
-        logger.error('Robot Arm Connection ERROR')
-        robot.isAvailable = True
-        return
+    #     await arm.setPose(client=c, pose='plug')
+
+    # except arm.ConnectionERROR:
+    #     logger.error('Robot Arm Connection ERROR')
+    #     robot.isAvailable = True
+    #     return
 
     robot.status = 'charge'
     robot.isAvailable = True
@@ -174,39 +186,41 @@ async def goReturn():
     robot.status = 'return'
     robot.isAvailable = False
 
-    # ARM
-    try:
-        await arm.setPose(client=c, pose='unplug')
-        await arm.setPose(client=c, pose='prep')
-        await arm.setPose(client=c, pose='default')
+    await asyncio.sleep(30)
 
-    except arm.ConnectionERROR:
-        logger.error('Robot Arm Connection ERROR')
-        robot.isAvailable = True
-        return
+    # # ARM
+    # try:
+    #     await arm.setPose(client=c, pose='unplug')
+    #     await arm.setPose(client=c, pose='prep')
+    #     await arm.setPose(client=c, pose='default')
 
-    # AMR
-    try:
-        allPoint = amr.currentAllGoalPoint()
-        # match target to Base
-        matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
-        if matchedPoint is None:
-            print('ERR, Point not found')
-            return
-        amr.moveToGoal(matchedPoint)
-        await asyncio.sleep(1)
-        while(amr.currentStatus() == 'running'):
-            await asyncio.sleep(2)
-        amr.startMagneticFind()
-        while(amr.magneticState()):
-            await asyncio.sleep(2)
-        amr.startMagneticGoal()
-        while(amr.magneticState()):
-            await asyncio.sleep(2)
-    except amr.ConnectionError:
-        logger.error('AMR Connection ERROR')
-        robot.isAvailable = True
-        return
+    # except arm.ConnectionERROR:
+    #     logger.error('Robot Arm Connection ERROR')
+    #     robot.isAvailable = True
+    #     return
+
+    # # AMR
+    # try:
+    #     allPoint = amr.currentAllGoalPoint()
+    #     # match target to Base
+    #     matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
+    #     if matchedPoint is None:
+    #         print('ERR, Point not found')
+    #         return
+    #     amr.moveToGoal(matchedPoint)
+    #     await asyncio.sleep(1)
+    #     while(amr.currentStatus() == 'running'):
+    #         await asyncio.sleep(2)
+    #     amr.startMagneticFind()
+    #     while(amr.magneticState()):
+    #         await asyncio.sleep(2)
+    #     amr.startMagneticGoal()
+    #     while(amr.magneticState()):
+    #         await asyncio.sleep(2)
+    # except amr.ConnectionError:
+    #     logger.error('AMR Connection ERROR')
+    #     robot.isAvailable = True
+    #     return
 
     robot.status = 'idle'
     robot.isAvailable = True
@@ -236,8 +250,8 @@ app.add_middleware(
 async def chargeTarget(target: Target):
     if robot.status == 'idle':
         if robot.isAvailable == True:
-            robot.target = target
-            asyncio.create_task(goCharge(robot.target))
+            robot.target.space = target.space
+            asyncio.create_task(goCharge())
             return {'message': 'True'}
         logger.error('Robot in Use ERROR!!')
     else:
@@ -303,16 +317,16 @@ async def returnXY(request: Request):
 @app.get('/info/status')
 async def returnStatus():
     data = {
-        'position': amr.currentXY(),
-        'robotStatus': jsons.dump(robot),
-        'amrStatus': amr.currentStatus(),
-        'batteryStatus': amr.battery(),
+        # 'position': amr.currentXY(),
+        # 'robotStatus': jsons.dump(robot),
+        # 'amrStatus': amr.currentStatus(),
+        # 'batteryStatus': amr.battery(),
 
         # test data
-        # 'position': {"x": 0, "y": 0},
-        # 'robotStatus': jsons.dump(robot),
-        # 'amrStatus': "no task",
-        # 'batteryStatus': {"power": 87, "temp": 20},
+        'position': {"x": 0, "y": 0},
+        'robotStatus': jsons.dump(robot.__dict__),
+        'amrStatus': "no task",
+        'batteryStatus': {"power": 87, "temp": 20},
     }
 
     return data
@@ -338,19 +352,20 @@ async def root():
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
+
     # multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    try:
-        amr.annulment()
-        amr.stopMagnetic()
-    except amr.ConnectionError:
-        logger.error('AMR Connection ERROR')
+    # try:
+    #     amr.annulment()
+    #     amr.stopMagnetic()
+    # except amr.ConnectionError:
+    #     logger.error('AMR Connection ERROR')
 
-    try:
-        c = arm.openClient()
-        asyncio.run(arm.setPose(client=c, pose='default'))
+    # try:
+    #     c = arm.openClient()
+    #     asyncio.run(arm.setPose(client=c, pose='default'))
 
-    except arm.ConnectionERROR:
-        logger.error('Robot Arm Connection ERROR')
+    # except arm.ConnectionERROR:
+    #     logger.error('Robot Arm Connection ERROR')
 
     uvicorn.run(app, host='0.0.0.0', port=8000)
