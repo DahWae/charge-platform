@@ -136,9 +136,13 @@ async def goCharge():
 
     # ARM
     try:
+        logger.info('start of prep')
         await arm.setPose(client=c, pose='prep')
 
         await asyncio.sleep(3)
+
+        logger.info('stop point')
+        return
 
         onTarget = None
         aiming = True
