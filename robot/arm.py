@@ -60,20 +60,20 @@ async def setPose(client, pose, coord=None):
         case 'default':
             postState(client=client, state=1)
             await asyncio.sleep(3)    
-            print(getReturn(client=client))
+            # print(getReturn(client=client))
             while(getReturn(client=client) == 1):
                 await asyncio.sleep(0.5)
-                print('waiting')
+                # print('waiting')
             postState(client=client, state=0)
             await asyncio.sleep(2)
 
         case 'prep':
             postState(client=client, state=2)
             await asyncio.sleep(3)    
-            print(getReturn(client=client))
+            # print(getReturn(client=client))
             while(getReturn(client=client) == 1):
                 await asyncio.sleep(0.5)
-                print('waiting')
+                # print('waiting')
             postState(client=client, state=0)
             await asyncio.sleep(2)
 
@@ -81,40 +81,40 @@ async def setPose(client, pose, coord=None):
             postCoord(client=client, coords=coord)
             postState(client=client, state=3)
             await asyncio.sleep(3)    
-            print(getReturn(client=client))
+            # print(getReturn(client=client))
             while(getReturn(client=client) == 1):
                 await asyncio.sleep(0.5)
-                print('waiting')
+                # print('waiting')
             postState(client=client, state=0)
             await asyncio.sleep(2)
 
         case 'ready':
             postState(client=client, state=4)
             await asyncio.sleep(3)    
-            print(getReturn(client=client))
+            # print(getReturn(client=client))
             while(getReturn(client=client) == 1):
                 await asyncio.sleep(0.5)
-                print('waiting')
+                # print('waiting')
             postState(client=client, state=0)
             await asyncio.sleep(2)
 
         case 'plug':
             postState(client=client, state=5)
             await asyncio.sleep(3)    
-            print(getReturn(client=client))
+            # print(getReturn(client=client))
             while(getReturn(client=client) == 1):
                 await asyncio.sleep(0.5)
-                print('waiting')
+                # print('waiting')
             postState(client=client, state=0)
             await asyncio.sleep(2)
 
         case 'unplug':
             postState(client=client, state=6)
             await asyncio.sleep(3)    
-            print(getReturn(client=client))
+            # print(getReturn(client=client))
             while(getReturn(client=client) == 1):
                 await asyncio.sleep(0.5)
-                print('waiting')
+                # print('waiting')
             postState(client=client, state=0)
             await asyncio.sleep(2)
 
