@@ -33,8 +33,8 @@ class DeleteForm(BaseModel):
 
 
 # TODO: change to list of robots' URL if multiple robots
-# robotUrl = 'http://192.168.100.3'
-robotUrl = 'http://localhost'
+robotUrl = 'http://192.168.0.52'
+# robotUrl = 'http://localhost'
 
 logger.remove()
 logger.add(sys.stdout, colorize=True,
