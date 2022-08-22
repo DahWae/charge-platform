@@ -106,33 +106,33 @@ async def goCharge():
 
     await asyncio.sleep(30)
 
-    try:
-        # AMR
-        allPoint = amr.currentAllGoalPoint()
-        # match target.space and GoalPoint coordination
-        matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.space)
-        if matchedPoint is None:
-            print('ERR, Point not found')
-            return
+    # try:
+    #     # AMR
+    #     allPoint = amr.currentAllGoalPoint()
+    #     # match target.space and GoalPoint coordination
+    #     matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.space)
+    #     if matchedPoint is None:
+    #         print('ERR, Point not found')
+    #         return
 
-        amr.moveToGoal(matchedPoint)
-        await asyncio.sleep(1)
-        while(amr.currentStatus() == 'running'):
-            await asyncio.sleep(2)
+    #     amr.moveToGoal(matchedPoint)
+    #     await asyncio.sleep(1)
+    #     while(amr.currentStatus() == 'running'):
+    #         await asyncio.sleep(2)
 
-        print(amr.startMagneticFind())
-        await asyncio.sleep(1)
-        while(amr.magneticState() == 1):
-            await asyncio.sleep(2)
+    #     print(amr.startMagneticFind())
+    #     await asyncio.sleep(1)
+    #     while(amr.magneticState() == 1):
+    #         await asyncio.sleep(2)
 
-        print(amr.startMagneticGoal())
-        await asyncio.sleep(1)
-        while(amr.magneticState() == 1):
-            await asyncio.sleep(2)
-    except amr.ConnectionError:
-        logger.error('AMR Connection ERROR')
-        robot.isAvailable = True
-        return
+    #     print(amr.startMagneticGoal())
+    #     await asyncio.sleep(1)
+    #     while(amr.magneticState() == 1):
+    #         await asyncio.sleep(2)
+    # except amr.ConnectionError:
+    #     logger.error('AMR Connection ERROR')
+    #     robot.isAvailable = True
+    #     return
 
     # ARM
     try:
@@ -196,28 +196,28 @@ async def goReturn():
         robot.isAvailable = True
         return
 
-    # AMR
-    try:
-        allPoint = amr.currentAllGoalPoint()
-        # match target to Base
-        matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
-        if matchedPoint is None:
-            print('ERR, Point not found')
-            return
-        amr.moveToGoal(matchedPoint)
-        await asyncio.sleep(1)
-        while(amr.currentStatus() == 'running'):
-            await asyncio.sleep(2)
-        amr.startMagneticFind()
-        while(amr.magneticState()):
-            await asyncio.sleep(2)
-        amr.startMagneticGoal()
-        while(amr.magneticState()):
-            await asyncio.sleep(2)
-    except amr.ConnectionError:
-        logger.error('AMR Connection ERROR')
-        robot.isAvailable = True
-        return
+    # # AMR
+    # try:
+    #     allPoint = amr.currentAllGoalPoint()
+    #     # match target to Base
+    #     matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
+    #     if matchedPoint is None:
+    #         print('ERR, Point not found')
+    #         return
+    #     amr.moveToGoal(matchedPoint)
+    #     await asyncio.sleep(1)
+    #     while(amr.currentStatus() == 'running'):
+    #         await asyncio.sleep(2)
+    #     amr.startMagneticFind()
+    #     while(amr.magneticState()):
+    #         await asyncio.sleep(2)
+    #     amr.startMagneticGoal()
+    #     while(amr.magneticState()):
+    #         await asyncio.sleep(2)
+    # except amr.ConnectionError:
+    #     logger.error('AMR Connection ERROR')
+    #     robot.isAvailable = True
+    #     return
 
     robot.status = 'idle'
     robot.isAvailable = True
