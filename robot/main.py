@@ -346,8 +346,7 @@ async def root():
 
 @app.on_event('startup')
 async def startupEvent():
-        await arm.setPose(client=c, pose='prep')
-        await arm.setPose(client=c, pose='default')
+    pass
 
 
 if __name__ == '__main__':
@@ -364,8 +363,6 @@ if __name__ == '__main__':
 
     try:
         c = arm.openClient()
-        asyncio.run(arm.setPose(client=c, pose='default'))
-        asyncio.run(arm.setPose(client=c, pose='prep'))
         asyncio.run(arm.setPose(client=c, pose='default'))
 
     except arm.ConnectionERROR:
