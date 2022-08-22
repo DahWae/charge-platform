@@ -314,16 +314,16 @@ async def returnXY(request: Request):
 @app.get('/info/status')
 async def returnStatus():
     data = {
-        'position': amr.currentXY(),
-        'robotStatus': jsons.dump(robot),
-        'amrStatus': amr.currentStatus(),
-        'batteryStatus': amr.battery(),
+        # 'position': amr.currentXY(),
+        # 'robotStatus': jsons.dump(robot),
+        # 'amrStatus': amr.currentStatus(),
+        # 'batteryStatus': amr.battery(),
 
         # test data
-        # 'position': {"x": 0, "y": 0},
-        # 'robotStatus': jsons.dump(robot.__dict__),
-        # 'amrStatus': "no task",
-        # 'batteryStatus': {"power": 87, "temp": 20},
+        'position': {"x": 0, "y": 0},
+        'robotStatus': jsons.dump(robot.__dict__),
+        'amrStatus': "no task",
+        'batteryStatus': {"power": 87, "temp": 20},
     }
 
     return data
