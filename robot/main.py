@@ -104,8 +104,6 @@ async def goCharge():
     robot.status = 'arrive'
     robot.isAvailable = False
 
-    await asyncio.sleep(30)
-
     # try:
     #     # AMR
     #     allPoint = amr.currentAllGoalPoint()
@@ -186,9 +184,7 @@ async def goReturn():
 
     robot.status = 'return'
     robot.isAvailable = False
-
-    await asyncio.sleep(30)
-
+    
     # ARM
     try:
         await arm.setPose(client=c, pose='unplug')
