@@ -110,7 +110,7 @@ async def goCharge():
         # AMR
         allPoint = amr.currentAllGoalPoint()
         # match target.space and GoalPoint coordination
-        matchedPoint = contains(allPoint, lambda x: x['name'] == target.space)
+        matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.space)
         if matchedPoint is None:
             print('ERR, Point not found')
             return
