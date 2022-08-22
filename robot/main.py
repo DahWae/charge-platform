@@ -140,7 +140,6 @@ async def goCharge():
 
         await asyncio.sleep(3)
 
-        return
         onTarget = None
         aiming = True
 
@@ -347,17 +346,23 @@ async def testResponse(test: str):
 async def root():
     return {"message": "Hello World"}
 
+@app.on_event('startup')
+async def startupEvent():
+    while True:
+        print('await test')
+        await asyncio.sleep(1)
+
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
     inView = multiprocessing.Value('i', 0)
 
     multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    try:
-        amr.annulment()
-        amr.stopMagnetic()
-    except amr.ConnectionError:
-        logger.error('AMR Connection ERROR')
+    # try:
+    #     amr.annulment()
+    #     amr.stopMagnetic()
+    # except amr.ConnectionError:
+    #     logger.error('AMR Connection ERROR')
 
     try:
         c = arm.openClient()
