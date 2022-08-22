@@ -98,7 +98,7 @@ async def mainTask():
                         '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('return', row[0]))
                 else:
                     cur.execute(
-                        '''UPDATE Vehicle SET percentage = ? WHERE ts = ?''', (row[5]+0.1, row[0]))
+                        '''UPDATE Vehicle SET percentage = ? WHERE ts = ?''', (row[5]+0.01, row[0]))
 
         await asyncio.sleep(2)  # check every 10 sec
 
