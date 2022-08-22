@@ -139,9 +139,6 @@ async def goCharge():
 
         await asyncio.sleep(3)
 
-        logger.info('stop point')
-        return
-
         onTarget = None
         aiming = True
 
@@ -184,7 +181,7 @@ async def goReturn():
 
     robot.status = 'return'
     robot.isAvailable = False
-    
+
     # ARM
     try:
         await arm.setPose(client=c, pose='unplug')
