@@ -361,6 +361,8 @@ if __name__ == '__main__':
     try:
         c = arm.openClient()
         asyncio.run(arm.setPose(client=c, pose='default'))
+        asyncio.run(arm.setPose(client=c, pose='ready'))
+        asyncio.run(arm.setPose(client=c, pose='default'))
 
     except arm.ConnectionERROR:
         logger.error('Robot Arm Connection ERROR')
