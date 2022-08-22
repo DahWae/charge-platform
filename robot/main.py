@@ -346,11 +346,11 @@ async def testResponse(test: str):
 async def root():
     return {"message": "Hello World"}
 
+
 @app.on_event('startup')
 async def startupEvent():
-    while True:
-        print('await test')
-        await asyncio.sleep(1)
+        await arm.setPose(client=c, pose='prep')
+
 
 if __name__ == '__main__':
     coords = multiprocessing.Array('d', 6)
