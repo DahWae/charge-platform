@@ -139,12 +139,12 @@ async def goCharge():
 
         await asyncio.sleep(3)
 
-        onTarget = None
+        onTarget = False
         aiming = True
 
         while aiming:
             aiming = False
-            for _ in range(20):
+            for _ in range(40):
                 if inView.value == 1:
 
                     onTarget = camera.onTarget(coords)
@@ -160,7 +160,11 @@ async def goCharge():
 
                 await asyncio.sleep(0.5)
 
-        await arm.setPose(client=c, pose='plug')
+        if onTarget:
+            await arm.setPose(client=c, pose='plug')
+        else:
+            await arm.setPose(client=c, pose='default')
+            logger.error('No Socket Found ERROR')
 
     except arm.ConnectionERROR:
         logger.error('Robot Arm Connection ERROR')

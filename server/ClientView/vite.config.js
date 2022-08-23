@@ -21,9 +21,9 @@ export default defineConfig({
   define: {
     // serverUrl: JSON.stringify('http://192.168.100.3:8001'),
     // robotUrl: JSON.stringify('http://192.168.100.2:8000'),
-    // serverUrl: JSON.stringify('http://192.168.0.120:8001'),
+    serverUrl: JSON.stringify('http://192.168.0.120:8001'),
     robotUrl: JSON.stringify('http://192.168.0.52:8000'),
-    serverUrl: JSON.stringify('http://localhost:8001'),
+    // serverUrl: JSON.stringify('http://localhost:8001'),
     // robotUrl: JSON.stringify('http://localhost:8000'),
 
   }
