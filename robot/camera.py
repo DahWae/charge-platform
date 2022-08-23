@@ -9,7 +9,7 @@ ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_6X6_250)
 ARUCO_LENGTH = 0.06
 
 # camera parameters
-f = open('./cfg/calibrationC270.pckl', 'rb')
+f = open('./cfg/calibrationC270_udoo.pckl', 'rb')
 cameraMatrix, distCoeffs, rvecs, tvecs = pickle.load(f)
 
 def rot2eul(R):

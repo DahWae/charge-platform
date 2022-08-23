@@ -1,6 +1,3 @@
-from calendar import c
-from turtle import distance, position
-from types import CoroutineType
 import numpy as np
 import cv2
 from cv2 import aruco
