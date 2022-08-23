@@ -33,11 +33,11 @@ const onReturn = () => {
             Toast(response.data)
         })
         
-    axios.get(serverUrl + '/')
-        .then(function (response) {
-            console.log(response.data)
-            Toast(response.data)
-        })
+    // axios.get(serverUrl + '/')
+    //     .then(function (response) {
+    //         console.log(response.data)
+    //         Toast(response.data)
+    //     })
 };
 </script>
 

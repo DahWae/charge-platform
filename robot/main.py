@@ -85,6 +85,7 @@ def subP(coords, inView):
                     # print(averageCoord)
                     for i in range(6):
                         coords[i] = averageCoord[i]
+                    print(averageCoord)
 
                 coordAll = []
 
@@ -150,11 +151,9 @@ async def goCharge():
                     onTarget = camera.onTarget(coords)
                     if onTarget:
                         await arm.setPose(client=c, pose='ready', coord=coords)
-                        print(coords)
                     else:
                         aiming = True
                         await arm.setPose(client=c, pose='aim', coord=coords)
-                        print(coords)
                     break
 
                 else:
