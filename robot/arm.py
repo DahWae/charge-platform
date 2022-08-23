@@ -89,6 +89,7 @@ async def setPose(client, pose, coord=None):
             await asyncio.sleep(2)
 
         case 'ready':
+            postCoord(client=client, coords=coord)
             postState(client=client, state=4)
             await asyncio.sleep(3)    
             # print(getReturn(client=client))
