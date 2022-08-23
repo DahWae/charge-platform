@@ -346,6 +346,8 @@ async def root():
 
 @app.on_event('startup')
 async def startupEvent():
+    await arm.setPose(client=c, pose='prep')
+    await arm.setPose(client=c, pose='default')
     pass
 
 
