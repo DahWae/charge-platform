@@ -92,7 +92,7 @@ def onTarget(coord):
         if abs(e) > 25:
             passed = False
     for e in coord[3:]:
-        if abs(e)>6:
+        if abs(e)>4:
             passed = False
 
     return passed
