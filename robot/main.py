@@ -150,9 +150,11 @@ async def goCharge():
                     onTarget = camera.onTarget(coords)
                     if onTarget:
                         await arm.setPose(client=c, pose='ready', coord=coords)
+                        print(coords)
                     else:
                         aiming = True
                         await arm.setPose(client=c, pose='aim', coord=coords)
+                        print(coords)
                     break
 
                 else:
@@ -175,8 +177,6 @@ async def goCharge():
     robot.isAvailable = True
 
     logger.info('End of Charge Task')
-
-    await goReturn()
 
     return
 
