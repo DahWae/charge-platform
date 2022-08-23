@@ -172,6 +172,8 @@ async def goCharge():
 
     logger.info('End of Charge Task')
 
+    await goReturn()
+
     return
 
 
