@@ -100,7 +100,7 @@ def printPosition():
 async def keepAlive(client):
     while True:
         arm.getReturn(client=client)
-        asyncio.sleep(5)
+        await asyncio.sleep(5)
 
 
 async def goCharge():
