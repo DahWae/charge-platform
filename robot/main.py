@@ -79,10 +79,10 @@ def subP(coords, inView):
                     if allStd[i] > 3:
                         testPass = 0
                         break
-                    print(allStd)
 
                 if testPass:
                     inView.value = 1
+                    print(allStd)
                     # print(averageCoord)
                     for i in range(6):
                         coords[i] = averageCoord[i]
@@ -359,6 +359,7 @@ async def startupEvent():
     # await arm.setPose(client=c, pose='prep')
     # await arm.setPose(client=c, pose='default')
     asyncio.create_task(keepAlive(client=c))
+    return
 
 
 if __name__ == '__main__':
