@@ -133,6 +133,9 @@ async def goCharge():
         await asyncio.sleep(1)
         while(amr.magneticState() == 1):
             await asyncio.sleep(2)
+
+        amr.annulment()
+        amr.stopMagnetic()
     except amr.ConnectionError:
         logger.error('AMR Connection ERROR')
         robot.isAvailable = True
@@ -222,6 +225,9 @@ async def goReturn():
         # amr.startMagneticGoal()
         # while(amr.magneticState()):
         #     await asyncio.sleep(2)
+        
+        amr.annulment()
+        amr.stopMagnetic()
     except amr.ConnectionError:
         logger.error('AMR Connection ERROR')
         robot.isAvailable = True
