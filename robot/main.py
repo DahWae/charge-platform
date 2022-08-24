@@ -210,7 +210,7 @@ async def goReturn():
     try:
         allPoint = amr.currentAllGoalPoint()
         # match target to Base
-        matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
+        matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
         if matchedPoint is None:
             print('ERR, Point not found')
             return
@@ -225,7 +225,7 @@ async def goReturn():
         # amr.startMagneticGoal()
         # while(amr.magneticState()):
         #     await asyncio.sleep(2)
-        
+
         amr.annulment()
         amr.stopMagnetic()
     except amr.ConnectionError:
