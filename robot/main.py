@@ -82,7 +82,7 @@ def subP(coords, inView):
 
                 if testPass:
                     inView.value = 1
-                    print(allStd)
+                    # print(allStd)
                     # print(averageCoord)
                     for i in range(6):
                         coords[i] = averageCoord[i]
