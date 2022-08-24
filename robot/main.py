@@ -210,7 +210,7 @@ async def goReturn():
     try:
         allPoint = amr.currentAllGoalPoint()
         # match target to Base
-        matchedPoint = contains(allPoint, lambda x: x['name'] == 'P0')
+        matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
         if matchedPoint is None:
             print('ERR, Point not found')
             return

@@ -9,9 +9,12 @@ def contains(list, filter):
     return None
 
 async def test():
+    amr.annulment()
+    amr.stopMagnetic()
+
     allPoint = amr.currentAllGoalPoint()
     # match target to Base
-    matchedPoint = contains(allPoint, lambda x: x['name'] == 'P1')
+    matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
     print(matchedPoint)
     if matchedPoint is None:
         print('ERR, Point not found')
