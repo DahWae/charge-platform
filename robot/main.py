@@ -211,6 +211,7 @@ async def goReturn():
         if matchedPoint is None:
             print('ERR, Point not found')
             return
+        logger.info(matchedPoint)
         amr.moveToGoal(matchedPoint)
         await asyncio.sleep(1)
         while(amr.currentStatus() == 'running'):
