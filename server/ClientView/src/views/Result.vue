@@ -6,6 +6,7 @@ import {
     Row,
     Col,
     Circle,
+    Button,
 } from 'vant'
 
 const plate = window.location.search.substring(7)
@@ -54,6 +55,16 @@ function newMessage(e) {
             :stroke-width="80" />
         </Col>
     </Row>
+
+    <div class="gap-30" />
+
+    <Row justify="center">
+        <Col span="15">
+        <Button round block type="danger" @click="onStop">
+            Stop
+        </Button>
+        </Col>
+    </Row> 
 </template>
 
 <style>
