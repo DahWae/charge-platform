@@ -125,10 +125,16 @@ async def goCharge():
         while(amr.currentStatus() == 'running'):
             await asyncio.sleep(2)
 
+        amr.annulment()
+        amr.stopMagnetic()
+
         print(amr.startMagneticFind())
         await asyncio.sleep(1)
         while(amr.magneticState() == 1):
             await asyncio.sleep(2)
+
+        amr.annulment()
+        amr.stopMagnetic()
 
         print(amr.startMagneticGoal())
         await asyncio.sleep(1)
@@ -221,10 +227,16 @@ async def goReturn():
         while(amr.currentStatus() == 'running'):
             await asyncio.sleep(2)
 
+        amr.annulment()
+        amr.stopMagnetic()
+
         print(amr.startMagneticFind())
         await asyncio.sleep(1)
         while(amr.magneticState() == 1):
             await asyncio.sleep(2)
+
+        amr.annulment()
+        amr.stopMagnetic()
 
         print(amr.startMagneticGoal())
         await asyncio.sleep(1)
