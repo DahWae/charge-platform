@@ -219,11 +219,15 @@ async def goReturn():
         await asyncio.sleep(1)
         while(amr.currentStatus() == 'running'):
             await asyncio.sleep(2)
-        amr.startMagneticFind()
-        while(amr.magneticState()):
+            
+        print(amr.startMagneticFind())
+        await asyncio.sleep(1)
+        while(amr.magneticState() == 1):
             await asyncio.sleep(2)
-        amr.startMagneticGoal()
-        while(amr.magneticState()):
+
+        print(amr.startMagneticGoal())
+        await asyncio.sleep(1)
+        while(amr.magneticState() == 1):
             await asyncio.sleep(2)
 
         amr.annulment()
