@@ -100,6 +100,7 @@ def printPosition():
 async def keepAlive(client):
     while True:
         arm.getReturn(client=client)
+        amr.currentXY()
         await asyncio.sleep(5)
 
 
@@ -219,7 +220,7 @@ async def goReturn():
         await asyncio.sleep(1)
         while(amr.currentStatus() == 'running'):
             await asyncio.sleep(2)
-            
+
         print(amr.startMagneticFind())
         await asyncio.sleep(1)
         while(amr.magneticState() == 1):
