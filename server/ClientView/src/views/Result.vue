@@ -7,7 +7,9 @@ import {
     Col,
     Circle,
     Button,
+    Toast,
 } from 'vant'
+import axios from 'axios'
 
 const plate = window.location.search.substring(7)
 const source = new EventSource(serverUrl + '/search/' + plate)

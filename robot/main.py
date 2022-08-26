@@ -115,6 +115,19 @@ async def goCharge():
         # AMR
         allPoint = amr.currentAllGoalPoint()
         # match target.space and GoalPoint coordination
+        matchedPoint = contains(allPoint, lambda x: x['name'] == 'Checkpoint')
+        if matchedPoint is None:
+            print('ERR, Point not found')
+            return
+
+        amr.moveToGoal(matchedPoint)
+        await asyncio.sleep(1)
+        while(amr.currentStatus() == 'running'):
+            await asyncio.sleep(2)
+
+        amr.annulment()
+        amr.stopMagnetic()
+
         matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.space)
         if matchedPoint is None:
             print('ERR, Point not found')
@@ -217,6 +230,18 @@ async def goReturn():
     try:
         allPoint = amr.currentAllGoalPoint()
         # match target to Base
+        matchedPoint = contains(allPoint, lambda x: x['name'] == 'CheckpointR')
+        if matchedPoint is None:
+            print('ERR, Point not found')
+            return
+
+        amr.moveToGoal(matchedPoint)
+        await asyncio.sleep(1)
+        while(amr.currentStatus() == 'running'):
+            await asyncio.sleep(2)
+
+        amr.annulment()
+        amr.stopMagnetic()
         matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
         if matchedPoint is None:
             print('ERR, Point not found')
