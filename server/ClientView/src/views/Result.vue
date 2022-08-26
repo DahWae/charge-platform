@@ -37,6 +37,17 @@ function newMessage(e) {
     console.log(text.value)
 }
 
+const onStop = () => {
+    axios.post(serverUrl + '/abort',
+        {
+            plate: plate
+        })
+        .then(function (response) {
+            console.log(response.data)
+            Toast(response.data)
+        })
+}
+
 </script>
 
 
