@@ -27,8 +27,10 @@ class SubmittForm(BaseModel):
     PickTime: str
     Time: datetime.time = None
 
+class PlateForm(BaseModel):
+    plate: str
 
-class DeleteForm(BaseModel):
+class TimestampForm(BaseModel):
     ts: str
 
 
@@ -263,6 +265,20 @@ async def searchResult(request: Request, plate):
             await asyncio.sleep(5)  # stream delay
     return EventSourceResponse(eventGenerator())
 
+@app.post('/abort')
+async def abort(form: PlateForm):
+    plate = form.plate
+    logger.info('recieved mission abort')
+
+    cur.execute('''SELECT * FROM Vehicle WHERE plate = ?''', (plate, ))
+    msg = cur.fetchall()
+
+    if msg != []:
+        if msg[0][6] == 'charging':
+            setRobotReturn()
+            cur.execute(
+                '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('return', msg[0][0]))
+
 
 @app.post('/submit')
 async def submit(form: SubmittForm):
@@ -279,7 +295,7 @@ async def submit(form: SubmittForm):
 
 
 @app.post('/delete')
-async def submit(form: DeleteForm):
+async def submit(form: TimestampForm):
     print(form.ts)
     logger.info('recieved deletion')
 
