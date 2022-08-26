@@ -278,6 +278,9 @@ async def abort(form: PlateForm):
             setRobotReturn()
             cur.execute(
                 '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('return', msg[0][0]))
+            return {'message': 'True'}
+    
+    return {'message': 'False'}
 
 
 @app.post('/submit')
