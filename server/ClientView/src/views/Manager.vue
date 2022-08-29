@@ -231,7 +231,7 @@ window.onload = function () {
     <Row justify="center">
         <Col span="24" style="position:relative;">
         <img alt="map" style="width:70%;" src="@/assets/map.png" />
-        <Icon style="z-index: 20;position: absolute;top: 25%;left: 20%;" name="circle" color="red" />
+        <!-- <Icon style="z-index: 20;position: absolute;top: 25%;left: 20%;" name="circle" color="red" /> -->
         </Col>
     </Row>
 
