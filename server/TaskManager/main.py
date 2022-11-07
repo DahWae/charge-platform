@@ -98,7 +98,7 @@ async def mainTask():
                 if row[5] > 85:  # set robot return
                     setRobotReturn()
                     cur.execute(
-                        '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('return', row[0]))
+                        '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('end', row[0]))
                 else:
                     cur.execute(
                         '''UPDATE Vehicle SET percentage = ? WHERE ts = ?''', (row[5]+0.01, row[0]))
@@ -277,7 +277,7 @@ async def abort(form: PlateForm):
         if msg[0][6] == 'charging':
             setRobotReturn()
             cur.execute(
-                '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('return', msg[0][0]))
+                '''UPDATE Vehicle SET status = ? WHERE ts = ?''', ('end', msg[0][0]))
             return {'message': 'True'}
     
     return {'message': 'False'}
