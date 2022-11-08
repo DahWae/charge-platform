@@ -123,21 +123,21 @@ async def goCharge():
     robot.isAvailable = False
 
     try:
-        # AMR
-        allPoint = amr.currentAllGoalPoint()
-        # match target.space and GoalPoint coordination
-        matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.checkpoint)
-        if matchedPoint is None:
-            print('ERR, Point not found')
-            return
+        # # AMR
+        # allPoint = amr.currentAllGoalPoint()
+        # # match target.space and GoalPoint coordination
+        # matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.checkpoint)
+        # if matchedPoint is None:
+        #     print('ERR, Point not found')
+        #     return
 
-        amr.moveToGoal(matchedPoint)
-        await asyncio.sleep(1)
-        while(amr.currentStatus() == 'running'):
-            await asyncio.sleep(2)
+        # amr.moveToGoal(matchedPoint)
+        # await asyncio.sleep(1)
+        # while(amr.currentStatus() == 'running'):
+        #     await asyncio.sleep(2)
 
-        amr.annulment()
-        amr.stopMagnetic()
+        # amr.annulment()
+        # amr.stopMagnetic()
 
         matchedPoint = contains(allPoint, lambda x: x['name'] == robot.target.space)
         if matchedPoint is None:
@@ -253,18 +253,18 @@ async def goReturn():
 
         amr.annulment()
         amr.stopMagnetic()
-        matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
-        if matchedPoint is None:
-            print('ERR, Point not found')
-            return
-        logger.info(matchedPoint)
-        amr.moveToGoal(matchedPoint)
-        await asyncio.sleep(1)
-        while(amr.currentStatus() == 'running'):
-            await asyncio.sleep(2)
+        # matchedPoint = contains(allPoint, lambda x: x['name'] == 'Base')
+        # if matchedPoint is None:
+        #     print('ERR, Point not found')
+        #     return
+        # logger.info(matchedPoint)
+        # amr.moveToGoal(matchedPoint)
+        # await asyncio.sleep(1)
+        # while(amr.currentStatus() == 'running'):
+        #     await asyncio.sleep(2)
 
-        amr.annulment()
-        amr.stopMagnetic()
+        # amr.annulment()
+        # amr.stopMagnetic()
 
         # print(amr.startMagneticFind())
         # await asyncio.sleep(1)
