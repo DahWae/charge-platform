@@ -80,7 +80,7 @@ def subP(coords, inView):
 
                 for i, e in enumerate(allCoord):
                     allStd[i] = np.std(e)
-                    if allStd[i] > 3:
+                    if allStd[i] > 5:
                         testPass = 0
                         break
 
