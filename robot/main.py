@@ -266,21 +266,21 @@ async def goReturn():
         amr.annulment()
         amr.stopMagnetic()
 
-        print(amr.startMagneticFind())
-        await asyncio.sleep(1)
-        while(amr.magneticState() == 1):
-            await asyncio.sleep(2)
+        # print(amr.startMagneticFind())
+        # await asyncio.sleep(1)
+        # while(amr.magneticState() == 1):
+        #     await asyncio.sleep(2)
 
-        amr.annulment()
-        amr.stopMagnetic()
+        # amr.annulment()
+        # amr.stopMagnetic()
 
-        print(amr.startMagneticGoal())
-        await asyncio.sleep(1)
-        while(amr.magneticState() == 1):
-            await asyncio.sleep(2)
+        # print(amr.startMagneticGoal())
+        # await asyncio.sleep(1)
+        # while(amr.magneticState() == 1):
+        #     await asyncio.sleep(2)
 
-        amr.annulment()
-        amr.stopMagnetic()
+        # amr.annulment()
+        # amr.stopMagnetic()
     except amr.ConnectionError:
         logger.error('AMR Connection ERROR')
         robot.isAvailable = True
