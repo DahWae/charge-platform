@@ -104,7 +104,7 @@ def printPosition():
 async def keepAlive(client):
     while True:
         arm.getReturn(client=client)
-        # amr.currentXY()
+        amr.currentXY()
         await asyncio.sleep(5)
 
 async def demo():
@@ -429,11 +429,11 @@ if __name__ == '__main__':
 
     multiprocessing.Process(target=subP, args=(coords, inView)).start()
 
-    # try:
-    #     amr.annulment()
-    #     amr.stopMagnetic()
-    # except amr.ConnectionError:
-    #     logger.error('AMR Connection ERROR')
+    try:
+        amr.annulment()
+        amr.stopMagnetic()
+    except amr.ConnectionError:
+        logger.error('AMR Connection ERROR')
 
     try:
         c = arm.openClient()
